@@ -1,0 +1,935 @@
+]633;E;echo "===== EMPLOYEE MODEL =====";ef68df9b-9e7b-4c7e-8d3b-085721f96b66]633;C===== EMPLOYEE MODEL =====
+from datetime import date
+from decimal import Decimal
+from enum import Enum
+
+from pydantic import BaseModel, Field
+
+
+class Sex(str, Enum):
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+
+
+class TaxRegime(str, Enum):
+    NEW = "new"
+    OLD = "old"
+
+
+class EmployeePayrollInput(BaseModel):
+    # Employee identity
+    employee_id: str
+    employee_name: str
+    pan: str | None = None
+
+    # Employment information
+    sex: Sex | None = None
+
+
+    date_of_joining: date
+    work_state: str
+    tax_regime: TaxRegime | None = None
+    regime_declared: bool = False
+
+    # Current month's earnings
+    basic_salary: Decimal = Field(default=Decimal("0"), ge=0)
+    dearness_allowance: Decimal = Field(default=Decimal("0"), ge=0)
+    hra: Decimal = Field(default=Decimal("0"), ge=0)
+    special_allowance: Decimal = Field(default=Decimal("0"), ge=0)
+    bonus: Decimal = Field(default=Decimal("0"), ge=0)
+    commission: Decimal = Field(default=Decimal("0"), ge=0)
+    other_taxable_earnings: Decimal = Field(default=Decimal("0"), ge=0)
+
+    # Payroll component history for the Tax Year
+    basic_salary_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+    dearness_allowance_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+    hra_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+
+    # Payroll history for the Tax Year
+    taxable_salary_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+    tds_deducted_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+
+    # Previous employer information, if applicable
+    previous_employer_taxable_salary: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    previous_employer_tds: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    # HRA exemption inputs
+    annual_rent_paid: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    hra_location: str | None = None
+    da_forms_part_of_retirement_benefits: bool = False
+
+    # Employee tax declarations
+    hra_exemption_claimed: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    professional_tax_paid: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    deduction_80c: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    deduction_80d: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    deduction_nps_employee: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    deduction_nps_employer: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    # PF inputs
+    pf_applicable: bool = True
+    pf_wages: Decimal | None = Field(default=None, ge=0)
+
+    # Payroll period
+    payroll_month: int = Field(ge=1, le=12)
+    tax_year: str = Field(pattern=r"^\d{4}-\d{2}$")
+
+===== PAYROLL ENGINE =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import EmployeePayrollInput
+from tax_engine.pf.pf_calculator import calculate_employee_pf
+from tax_engine.professional_tax.models import PTStatus
+from tax_engine.professional_tax.pt_engine import (
+    calculate_professional_tax,
+)
+from tax_engine.tds.salary_projection import current_month_gross
+from tax_engine.tds.tds_engine import calculate_employee_tds
+
+
+ZERO = Decimal("0")
+
+
+def calculate_monthly_payroll(
+    employee: EmployeePayrollInput,
+) -> dict:
+    """
+    Combined monthly statutory payroll engine.
+
+    Calculates:
+    - Salary TDS
+    - Employee PF
+    - Professional Tax
+    - Total statutory deductions
+    - Net salary
+
+    If a required statutory component cannot be determined,
+    status becomes REVIEW_REQUIRED and final net salary is
+    intentionally not produced.
+    """
+
+    gross_salary = current_month_gross(employee)
+
+    # -------------------------
+    # Salary TDS
+    # -------------------------
+    tds_result = calculate_employee_tds(employee)
+    monthly_tds = tds_result["current_month_tds"]
+
+    # -------------------------
+    # Employee PF
+    # -------------------------
+    pf_review_required = False
+    pf_result = None
+    employee_pf = ZERO
+
+    if employee.pf_applicable:
+        if employee.pf_wages is None:
+            pf_review_required = True
+        else:
+            pf_result = calculate_employee_pf(
+                pf_wages=employee.pf_wages,
+                pf_applicable=True,
+            )
+            employee_pf = pf_result["employee_pf"]
+    else:
+        pf_result = calculate_employee_pf(
+            pf_wages=ZERO,
+            pf_applicable=False,
+        )
+
+    # -------------------------
+    # Professional Tax
+    # -------------------------
+    pt_result = calculate_professional_tax(
+        work_state=employee.work_state,
+        monthly_salary_or_wages=gross_salary,
+        payroll_month=employee.payroll_month,
+        tax_year=employee.tax_year,
+        sex=employee.sex,
+    )
+
+    pt_review_required = (
+        pt_result.status == PTStatus.REVIEW_REQUIRED
+    )
+
+    # -------------------------
+    # Overall status
+    # -------------------------
+    review_required = (
+        pf_review_required
+        or pt_review_required
+    )
+
+    if review_required:
+        return {
+            "status": "REVIEW_REQUIRED",
+            "employee_id": employee.employee_id,
+            "employee_name": employee.employee_name,
+            "tax_year": employee.tax_year,
+            "payroll_month": employee.payroll_month,
+            "gross_salary": gross_salary,
+            "tds": monthly_tds,
+            "employee_pf": (
+                None if pf_review_required else employee_pf
+            ),
+            "professional_tax": (
+                None if pt_review_required
+                else pt_result.professional_tax
+            ),
+            "total_deductions": None,
+            "net_salary": None,
+            "tds_breakdown": tds_result,
+            "pf_breakdown": pf_result,
+            "pt_breakdown": pt_result,
+        }
+
+    professional_tax = pt_result.professional_tax
+
+    total_deductions = (
+        monthly_tds
+        + employee_pf
+        + professional_tax
+    )
+
+    net_salary = gross_salary - total_deductions
+
+    return {
+        "status": "CALCULATED",
+        "employee_id": employee.employee_id,
+        "employee_name": employee.employee_name,
+        "tax_year": employee.tax_year,
+        "payroll_month": employee.payroll_month,
+        "gross_salary": gross_salary,
+        "tds": monthly_tds,
+        "employee_pf": employee_pf,
+        "professional_tax": professional_tax,
+        "total_deductions": total_deductions,
+        "net_salary": net_salary,
+        "tds_breakdown": tds_result,
+        "pf_breakdown": pf_result,
+        "pt_breakdown": pt_result,
+    }
+
+===== TDS ENGINE =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import EmployeePayrollInput
+from tax_engine.tds.annual_tax import calculate_annual_tax
+from tax_engine.tds.monthly_tds import calculate_monthly_tds
+from tax_engine.tds.regime_resolver import resolve_tax_regime
+from tax_engine.tds.salary_projection import (
+    months_remaining_including_current,
+    project_tax_year_salary,
+)
+from tax_engine.tds.taxable_salary import calculate_taxable_salary
+
+
+def calculate_employee_tds(
+    employee: EmployeePayrollInput,
+) -> dict:
+    """
+    End-to-end salary TDS computation for TY 2026-27.
+
+    Flow:
+    1. Resolve tax regime
+    2. Project Tax Year salary
+    3. Calculate taxable salary
+    4. Calculate annual tax liability
+    5. Allocate remaining tax across remaining payroll months
+    """
+
+    regime = resolve_tax_regime(employee)
+
+    projected_salary = project_tax_year_salary(employee)
+
+    taxable_salary_result = calculate_taxable_salary(
+        employee=employee,
+        projected_salary=projected_salary,
+    )
+
+    annual_tax_result = calculate_annual_tax(
+        taxable_income=taxable_salary_result["taxable_salary"],
+        tax_year=employee.tax_year,
+        regime=regime,
+        resident_individual=True,
+    )
+
+    remaining_months = months_remaining_including_current(
+        employee.payroll_month
+    )
+
+    monthly_tds_result = calculate_monthly_tds(
+        annual_tax_liability=annual_tax_result["annual_tax_liability"],
+        tds_deducted_current_employer_ytd=employee.tds_deducted_ytd,
+        previous_employer_tds=employee.previous_employer_tds,
+        remaining_payroll_months=remaining_months,
+    )
+
+    return {
+        "employee_id": employee.employee_id,
+        "employee_name": employee.employee_name,
+        "tax_year": employee.tax_year,
+        "regime": regime.value,
+        "projected_salary": projected_salary,
+        "taxable_salary": taxable_salary_result["taxable_salary"],
+        "annual_tax_liability": annual_tax_result["annual_tax_liability"],
+        "tds_deducted_ytd": employee.tds_deducted_ytd,
+        "previous_employer_tds": employee.previous_employer_tds,
+        "remaining_payroll_months": remaining_months,
+        "current_month_tds": monthly_tds_result["current_month_tds"],
+        "taxable_salary_breakdown": taxable_salary_result,
+        "annual_tax_breakdown": annual_tax_result,
+        "monthly_tds_breakdown": monthly_tds_result,
+    }
+
+===== SALARY PROJECTION =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import EmployeePayrollInput
+
+
+ZERO = Decimal("0")
+
+
+def current_month_gross(employee: EmployeePayrollInput) -> Decimal:
+    return (
+        employee.basic_salary
+        + employee.dearness_allowance
+        + employee.hra
+        + employee.special_allowance
+        + employee.bonus
+        + employee.commission
+        + employee.other_taxable_earnings
+    )
+
+
+def months_remaining_including_current(payroll_month: int) -> int:
+    """
+    Indian Tax Year runs April to March.
+
+    payroll_month uses calendar month numbering:
+    April = 4 ... December = 12, January = 1 ... March = 3.
+    """
+
+    month_sequence = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3]
+
+    if payroll_month not in month_sequence:
+        raise ValueError("Invalid payroll month")
+
+    index = month_sequence.index(payroll_month)
+    return len(month_sequence) - index
+
+
+def project_tax_year_salary(employee: EmployeePayrollInput) -> Decimal:
+    """
+    Basic V1 salary projection.
+
+    YTD taxable salary is assumed to represent completed months
+    before the current payroll month.
+
+    Current month's regular earnings are projected through
+    the remaining months of the Tax Year.
+
+    Previous-employer taxable salary is added separately.
+    """
+
+    monthly_gross = current_month_gross(employee)
+
+    remaining_months = months_remaining_including_current(
+        employee.payroll_month
+    )
+
+    projected_current_employer_salary = (
+        employee.taxable_salary_ytd
+        + (monthly_gross * remaining_months)
+    )
+
+    total_projected_salary = (
+        projected_current_employer_salary
+        + employee.previous_employer_taxable_salary
+    )
+
+    return total_projected_salary
+
+
+def project_component(
+    amount_ytd: Decimal,
+    current_month_amount: Decimal,
+    payroll_month: int,
+) -> Decimal:
+    """
+    Project one recurring salary component through the Tax Year.
+
+    amount_ytd represents completed months before the current month.
+    """
+
+    remaining_months = months_remaining_including_current(payroll_month)
+
+    return amount_ytd + (current_month_amount * remaining_months)
+
+===== TAXABLE SALARY =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import EmployeePayrollInput
+from tax_engine.tds.deduction_eligibility import calculate_eligible_deductions
+from tax_engine.tds.hra_calculator import calculate_hra_exemption
+from tax_engine.tds.regime_resolver import resolve_tax_regime
+from tax_engine.tds.salary_projection import project_component
+
+
+ZERO = Decimal("0")
+
+
+def calculate_taxable_salary(
+    employee: EmployeePayrollInput,
+    projected_salary: Decimal,
+) -> dict[str, Decimal | str]:
+    """
+    Calculate V1 taxable salary for TY 2026-27.
+    """
+
+    if projected_salary < ZERO:
+        raise ValueError("projected_salary cannot be negative")
+
+    regime = resolve_tax_regime(employee)
+
+    projected_basic = project_component(
+        employee.basic_salary_ytd,
+        employee.basic_salary,
+        employee.payroll_month,
+    )
+
+    projected_da = project_component(
+        employee.dearness_allowance_ytd,
+        employee.dearness_allowance,
+        employee.payroll_month,
+    )
+
+    projected_hra = project_component(
+        employee.hra_ytd,
+        employee.hra,
+        employee.payroll_month,
+    )
+
+    hra_exemption = calculate_hra_exemption(
+        employee=employee,
+        projected_basic_salary=projected_basic,
+        projected_da=projected_da,
+        projected_hra=projected_hra,
+    )
+
+    salary_after_exemptions = max(
+        ZERO,
+        projected_salary - hra_exemption,
+    )
+
+    deductions = calculate_eligible_deductions(
+        employee=employee,
+        projected_salary=salary_after_exemptions,
+    )
+
+    salary_after_section_19 = max(
+        ZERO,
+        salary_after_exemptions
+        - deductions["standard_deduction"]
+        - deductions["professional_tax"],
+    )
+
+    chapter_viii_deductions = (
+        deductions["deduction_123"]
+        + deductions["deduction_health_insurance"]
+    )
+
+    taxable_salary = max(
+        ZERO,
+        salary_after_section_19 - chapter_viii_deductions,
+    )
+
+    return {
+        "regime": regime.value,
+        "projected_salary": projected_salary,
+        "projected_basic": projected_basic,
+        "projected_da": projected_da,
+        "projected_hra": projected_hra,
+        "hra_exemption": hra_exemption,
+        "salary_after_exemptions": salary_after_exemptions,
+        "standard_deduction": deductions["standard_deduction"],
+        "professional_tax": deductions["professional_tax"],
+        "deduction_123": deductions["deduction_123"],
+        "deduction_health_insurance": deductions[
+            "deduction_health_insurance"
+        ],
+        "salary_after_section_19": salary_after_section_19,
+        "chapter_viii_deductions": chapter_viii_deductions,
+        "taxable_salary": taxable_salary,
+    }
+
+===== DEDUCTION ELIGIBILITY =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import EmployeePayrollInput, TaxRegime
+from tax_engine.tds.regime_resolver import resolve_tax_regime
+from tax_engine.tds.regime_config import get_regime_config
+
+
+ZERO = Decimal("0")
+
+
+def calculate_eligible_deductions(
+    employee: EmployeePayrollInput,
+    projected_salary: Decimal,
+) -> dict[str, Decimal]:
+    """
+    Resolve salary and Chapter VIII deductions for TY 2026-27.
+
+    This V1 handles:
+    - Standard deduction
+    - Professional tax
+    - Section 123 / Schedule XV deduction (legacy 80C concept)
+    - Health insurance deduction input (legacy 80D concept)
+
+    More deduction categories will be added as separate verified rules.
+    """
+
+    regime = resolve_tax_regime(employee)
+    config = get_regime_config(employee.tax_year, regime)
+
+    standard_deduction = min(
+        config.STANDARD_DEDUCTION,
+        projected_salary,
+    )
+
+    professional_tax = employee.professional_tax_paid
+
+    deduction_123 = ZERO
+    deduction_health_insurance = ZERO
+
+    if regime == TaxRegime.OLD:
+        deduction_123 = min(
+            employee.deduction_80c,
+            Decimal("150000"),
+        )
+
+        deduction_health_insurance = employee.deduction_80d
+
+    return {
+        "standard_deduction": standard_deduction,
+        "professional_tax": professional_tax,
+        "deduction_123": deduction_123,
+        "deduction_health_insurance": deduction_health_insurance,
+    }
+
+===== HRA =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import EmployeePayrollInput, TaxRegime
+from tax_engine.tds.regime_resolver import resolve_tax_regime
+
+
+ZERO = Decimal("0")
+
+FIFTY_PERCENT_LOCATIONS = {
+    "mumbai",
+    "kolkata",
+    "delhi",
+    "chennai",
+    "hyderabad",
+    "pune",
+    "ahmedabad",
+    "bengaluru",
+    "bangalore",
+}
+
+
+def calculate_hra_exemption(
+    employee: EmployeePayrollInput,
+    projected_basic_salary: Decimal,
+    projected_da: Decimal,
+    projected_hra: Decimal,
+) -> Decimal:
+    """
+    Calculate HRA exemption for TY 2026-27.
+
+    Exemption is available only when the employee
+    is using the old regime in this V1.
+
+    Rule 279 basis:
+    least of:
+    1. actual HRA
+    2. rent paid minus 10% of salary
+    3. 50% or 40% of salary depending on location
+    """
+
+    regime = resolve_tax_regime(employee)
+
+    if regime != TaxRegime.OLD:
+        return ZERO
+
+    if employee.annual_rent_paid <= ZERO:
+        return ZERO
+
+    if not employee.hra_location:
+        return ZERO
+
+    hra_salary = projected_basic_salary
+
+    if employee.da_forms_part_of_retirement_benefits:
+        hra_salary += projected_da
+
+    location = employee.hra_location.strip().lower()
+
+    percentage = (
+        Decimal("0.50")
+        if location in FIFTY_PERCENT_LOCATIONS
+        else Decimal("0.40")
+    )
+
+    actual_hra = projected_hra
+
+    rent_minus_10_percent_salary = max(
+        ZERO,
+        employee.annual_rent_paid
+        - (hra_salary * Decimal("0.10")),
+    )
+
+    salary_percentage_limit = hra_salary * percentage
+
+    return min(
+        actual_hra,
+        rent_minus_10_percent_salary,
+        salary_percentage_limit,
+    )
+
+===== ANNUAL TAX =====
+from decimal import Decimal, ROUND_HALF_UP
+
+from tax_engine.payroll.employee import TaxRegime
+from tax_engine.tds.rebate import calculate_rebate_and_marginal_relief
+from tax_engine.tds.regime_config import get_regime_config
+
+
+ZERO = Decimal("0")
+CESS_RATE = Decimal("0.04")
+
+
+def calculate_tax_from_slabs(
+    taxable_income: Decimal,
+    slabs,
+) -> Decimal:
+    if taxable_income < ZERO:
+        raise ValueError("taxable_income cannot be negative")
+
+    tax = ZERO
+
+    for lower, upper, rate in slabs:
+        if taxable_income <= lower:
+            break
+
+        amount_in_slab = taxable_income - lower
+
+        if upper is not None:
+            amount_in_slab = min(
+                amount_in_slab,
+                upper - lower,
+            )
+
+        tax += amount_in_slab * rate
+
+    return tax
+
+
+def calculate_annual_tax(
+    taxable_income: Decimal,
+    tax_year: str,
+    regime: TaxRegime,
+    resident_individual: bool = True,
+) -> dict[str, Decimal | str]:
+    """
+    Calculate annual income-tax liability for salary payroll.
+
+    V1 includes:
+    - regime-specific slab tax
+    - section 156 rebate / marginal relief for new regime
+    - Health and Education Cess
+
+    Surcharge is intentionally handled separately.
+    """
+
+    if taxable_income < ZERO:
+        raise ValueError("taxable_income cannot be negative")
+
+    config = get_regime_config(tax_year, regime)
+
+    slab_tax = calculate_tax_from_slabs(
+        taxable_income,
+        config.SLABS,
+    )
+
+    rebate = ZERO
+    marginal_relief = ZERO
+    tax_after_rebate = slab_tax
+
+    if regime == TaxRegime.NEW:
+        rebate_result = calculate_rebate_and_marginal_relief(
+            taxable_income,
+            resident_individual=resident_individual,
+        )
+
+        rebate = rebate_result["rebate"]
+        marginal_relief = rebate_result["marginal_relief"]
+        tax_after_rebate = rebate_result["tax_after_rebate"]
+
+    cess = tax_after_rebate * CESS_RATE
+
+    total_tax = tax_after_rebate + cess
+
+    total_tax_rounded = total_tax.quantize(
+        Decimal("1"),
+        rounding=ROUND_HALF_UP,
+    )
+
+    return {
+        "tax_year": tax_year,
+        "regime": regime.value,
+        "taxable_income": taxable_income,
+        "slab_tax": slab_tax,
+        "rebate": rebate,
+        "marginal_relief": marginal_relief,
+        "tax_after_rebate": tax_after_rebate,
+        "cess": cess,
+        "annual_tax_liability": total_tax_rounded,
+    }
+
+===== REBATE =====
+from decimal import Decimal
+
+from tax_engine.tds.slab_calculator import calculate_slab_tax
+
+
+REBATE_THRESHOLD = Decimal("1200000")
+MAX_REBATE = Decimal("60000")
+
+
+def calculate_rebate_and_marginal_relief(
+    total_income: Decimal,
+    resident_individual: bool = True,
+) -> dict[str, Decimal]:
+    """
+    Apply section 156(2) rebate / marginal relief
+    for a resident individual taxed under section 202(1).
+
+    This function operates on normal slab-rate income only.
+    Special-rate income must be handled separately.
+    """
+
+    if total_income < Decimal("0"):
+        raise ValueError("total_income cannot be negative")
+
+    slab_tax = calculate_slab_tax(total_income)
+
+    if not resident_individual:
+        return {
+            "slab_tax": slab_tax,
+            "rebate": Decimal("0"),
+            "marginal_relief": Decimal("0"),
+            "tax_after_rebate": slab_tax,
+        }
+
+    rebate = Decimal("0")
+    marginal_relief = Decimal("0")
+
+    if total_income <= REBATE_THRESHOLD:
+        rebate = min(slab_tax, MAX_REBATE)
+
+    else:
+        excess_income = total_income - REBATE_THRESHOLD
+
+        if slab_tax > excess_income:
+            marginal_relief = slab_tax - excess_income
+
+    tax_after_rebate = slab_tax - rebate - marginal_relief
+
+    return {
+        "slab_tax": slab_tax,
+        "rebate": rebate,
+        "marginal_relief": marginal_relief,
+        "tax_after_rebate": tax_after_rebate,
+    }
+
+===== MONTHLY TDS =====
+from decimal import Decimal, ROUND_HALF_UP
+
+
+ZERO = Decimal("0")
+
+
+def calculate_monthly_tds(
+    annual_tax_liability: Decimal,
+    tds_deducted_current_employer_ytd: Decimal,
+    previous_employer_tds: Decimal,
+    remaining_payroll_months: int,
+) -> dict[str, Decimal | int]:
+    """
+    Calculate current-month salary TDS under section 392.
+
+    annual_tax_liability:
+        Estimated total tax liability for the Tax Year.
+
+    tds_deducted_current_employer_ytd:
+        TDS already deducted by the current employer before
+        the current payroll month.
+
+    previous_employer_tds:
+        TDS from a previous employer that has been validly
+        reported and considered in the payroll computation.
+
+    remaining_payroll_months:
+        Number of payroll months remaining including
+        the current payroll month.
+
+    The result spreads remaining estimated tax over
+    remaining payroll periods.
+    """
+
+    if annual_tax_liability < ZERO:
+        raise ValueError("annual_tax_liability cannot be negative")
+
+    if tds_deducted_current_employer_ytd < ZERO:
+        raise ValueError(
+            "tds_deducted_current_employer_ytd cannot be negative"
+        )
+
+    if previous_employer_tds < ZERO:
+        raise ValueError("previous_employer_tds cannot be negative")
+
+    if remaining_payroll_months <= 0:
+        raise ValueError("remaining_payroll_months must be greater than zero")
+
+    total_tds_credit_considered = (
+        tds_deducted_current_employer_ytd
+        + previous_employer_tds
+    )
+
+    remaining_tax = max(
+        ZERO,
+        annual_tax_liability - total_tds_credit_considered,
+    )
+
+    current_month_tds = (
+        remaining_tax / Decimal(remaining_payroll_months)
+    ).quantize(
+        Decimal("1"),
+        rounding=ROUND_HALF_UP,
+    )
+
+    return {
+        "annual_tax_liability": annual_tax_liability,
+        "tds_deducted_current_employer_ytd":
+            tds_deducted_current_employer_ytd,
+        "previous_employer_tds": previous_employer_tds,
+        "total_tds_credit_considered": total_tds_credit_considered,
+        "remaining_tax": remaining_tax,
+        "remaining_payroll_months": remaining_payroll_months,
+        "current_month_tds": current_month_tds,
+    }
+
+===== REGIME RESOLVER =====
+from tax_engine.payroll.employee import EmployeePayrollInput, TaxRegime
+
+
+def resolve_tax_regime(employee: EmployeePayrollInput) -> TaxRegime:
+    """
+    Resolve the tax regime to use for salary TDS.
+
+    If the employee has made a valid declaration,
+    use the declared regime.
+
+    Otherwise, default to the new regime.
+    """
+
+    if employee.regime_declared and employee.tax_regime is not None:
+        return employee.tax_regime
+
+    return TaxRegime.NEW
+
+===== REGIME CONFIG =====
+from tax_engine.payroll.employee import TaxRegime
+from tax_engine.tds.regimes import (
+    new_regime_2026_27,
+    old_regime_2026_27,
+)
+
+
+def get_regime_config(tax_year: str, regime: TaxRegime):
+    if tax_year != "2026-27":
+        raise ValueError(f"Unsupported tax year: {tax_year}")
+
+    if regime == TaxRegime.NEW:
+        return new_regime_2026_27
+
+    if regime == TaxRegime.OLD:
+        return old_regime_2026_27
+
+    raise ValueError(f"Unsupported tax regime: {regime}")
+
+===== NEW REGIME =====
+from decimal import Decimal
+
+
+TAX_YEAR = "2026-27"
+REGIME = "new"
+
+STANDARD_DEDUCTION = Decimal("75000")
+
+SLABS = [
+    (Decimal("0"), Decimal("400000"), Decimal("0.00")),
+    (Decimal("400000"), Decimal("800000"), Decimal("0.05")),
+    (Decimal("800000"), Decimal("1200000"), Decimal("0.10")),
+    (Decimal("1200000"), Decimal("1600000"), Decimal("0.15")),
+    (Decimal("1600000"), Decimal("2000000"), Decimal("0.20")),
+    (Decimal("2000000"), Decimal("2400000"), Decimal("0.25")),
+    (Decimal("2400000"), None, Decimal("0.30")),
+]
+
+REBATE_THRESHOLD = Decimal("1200000")
+MAX_REBATE = Decimal("60000")
+
+CESS_RATE = Decimal("0.04")
+
+===== OLD REGIME =====
+from decimal import Decimal
+
+
+TAX_YEAR = "2026-27"
+REGIME = "old"
+
+STANDARD_DEDUCTION = Decimal("50000")
+
+SLABS = [
+    (Decimal("0"), Decimal("250000"), Decimal("0.00")),
+    (Decimal("250000"), Decimal("500000"), Decimal("0.05")),
+    (Decimal("500000"), Decimal("1000000"), Decimal("0.20")),
+    (Decimal("1000000"), None, Decimal("0.30")),
+]
+
+CESS_RATE = Decimal("0.04")
