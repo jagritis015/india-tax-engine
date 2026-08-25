@@ -13,12 +13,13 @@ def test_verified_pt_states_are_reported():
     assert "maharashtra" in coverage["verified_states"]
     assert "telangana" in coverage["verified_states"]
     assert "gujarat" in coverage["verified_states"]
+    assert "tamil_nadu" in coverage["verified_states"]
 
 
 def test_unverified_state_is_visible():
     coverage = get_pt_coverage("2026-27")
 
-    assert "tamil_nadu" in coverage["not_verified_states"]
+    assert "delhi" in coverage["not_verified_states"]
 
 
 def test_karnataka_has_rule_metadata():

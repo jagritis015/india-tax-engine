@@ -26,6 +26,24 @@ PT_RULE_METADATA = {
         notes="Employee salary/wage PT rule",
     ),
 
+    ("tamil_nadu", "2026-27"): PTRuleMetadata(
+        state="tamil_nadu",
+        tax_year="2026-27",
+        status="verified",
+        legislation=(
+            "Tamil Nadu Urban Local Bodies Rules, 2023 - "
+            "Tax on Profession, Trade, Calling and Employment"
+        ),
+        source_authority=(
+            "Directorate of Town Panchayats, Government of Tamil Nadu"
+        ),
+        effective_from="2026-04-01",
+        notes=(
+            "Employee professional tax assessed half-yearly; "
+            "requires applicable half-year payroll context"
+        ),
+    ),
+
     ("maharashtra", "2026-27"): PTRuleMetadata(
         state="maharashtra",
         tax_year="2026-27",
