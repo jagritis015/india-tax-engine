@@ -96,6 +96,15 @@ def calculate_monthly_payroll(
         payroll_month=employee.payroll_month,
         tax_year=employee.tax_year,
         sex=employee.sex,
+        pt_half_year_salary_or_wages=(
+            employee.pt_half_year_salary_or_wages
+        ),
+        pt_days_employed_in_half_year=(
+            employee.pt_days_employed_in_half_year
+        ),
+        pt_already_deducted_for_half_year=(
+            employee.pt_already_deducted_for_half_year
+        ),
     )
 
     pt_review_required = (

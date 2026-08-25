@@ -4,6 +4,7 @@ from tax_engine.professional_tax.states import (
     karnataka_2026_27,
     maharashtra_2026_27,
     telangana_2026_27,
+    tamil_nadu_2026_27,
 )
 
 
@@ -30,4 +31,11 @@ def register_professional_tax_rules() -> None:
         "maharashtra",
         "2026-27",
         maharashtra_2026_27.calculate,
+    )
+
+
+    register_pt_handler(
+        "tamil_nadu",
+        "2026-27",
+        tamil_nadu_2026_27.calculate,
     )

@@ -18,3 +18,4 @@ class ProfessionalTaxResult(BaseModel):
     professional_tax: Decimal
     status: PTStatus
     rule_reference: str | None = None
+    review_reason: str | None = None

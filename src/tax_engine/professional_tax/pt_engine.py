@@ -32,6 +32,9 @@ def calculate_professional_tax(
     payroll_month: int,
     tax_year: str,
     sex: Sex | None = None,
+    pt_half_year_salary_or_wages: Decimal | None = None,
+    pt_days_employed_in_half_year: int | None = None,
+    pt_already_deducted_for_half_year: Decimal = Decimal("0"),
 ) -> ProfessionalTaxResult:
 
     if monthly_salary_or_wages < Decimal("0"):
@@ -59,6 +62,15 @@ def calculate_professional_tax(
             payroll_month=payroll_month,
             tax_year=tax_year,
             sex=sex,
+            pt_half_year_salary_or_wages=(
+                pt_half_year_salary_or_wages
+            ),
+            pt_days_employed_in_half_year=(
+                pt_days_employed_in_half_year
+            ),
+            pt_already_deducted_for_half_year=(
+                pt_already_deducted_for_half_year
+            ),
         )
 
     if is_pt_not_applicable(
@@ -83,4 +95,8 @@ def calculate_professional_tax(
         professional_tax=Decimal("0"),
         status=PTStatus.REVIEW_REQUIRED,
         rule_reference=None,
+        review_reason=(
+            f"Professional Tax rule not verified for "
+            f"{work_state} for TY {tax_year}"
+        ),
     )

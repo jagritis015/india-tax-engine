@@ -131,6 +131,23 @@ class EmployeePayrollInput(BaseModel):
         default=Decimal("0.12"), ge=0
     )
 
+    # Professional Tax half-year context
+    pt_half_year_salary_or_wages: Decimal | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    pt_days_employed_in_half_year: int | None = Field(
+        default=None,
+        ge=0,
+        le=184,
+    )
+
+    pt_already_deducted_for_half_year: Decimal = Field(
+        default=Decimal("0"),
+        ge=0,
+    )
+
     # Payroll period
     payroll_month: int = Field(ge=1, le=12)
     tax_year: str = Field(pattern=r"^\d{4}-\d{2}$")

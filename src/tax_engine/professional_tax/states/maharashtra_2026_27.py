@@ -12,6 +12,7 @@ def calculate(
     payroll_month: int,
     tax_year: str,
     sex: Sex | None = None,
+    **kwargs,
 ) -> ProfessionalTaxResult:
 
     if sex is None or sex == Sex.OTHER:

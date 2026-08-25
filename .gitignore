@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local development / diagnostic artifacts
+*_snapshot.txt
+multi_employee_test.csv
+.pytest_cache/
+__pycache__/
