@@ -22,9 +22,17 @@ def test_review_required_rule_fails_closed() -> None:
         get_verified_rule("HRA_EXEMPTION", on_date=date(2026, 4, 1))
 
 
-def test_not_implemented_rule_fails_closed() -> None:
-    with pytest.raises(StatutoryRuleUnavailableError, match="not verified"):
-        get_verified_rule("SURCHARGE", on_date=date(2026, 4, 1))
+def test_verified_surcharge_rule_resolves_inside_tax_year() -> None:
+    resolved = get_verified_rule("SURCHARGE", on_date=date(2026, 4, 1))
+
+    assert resolved.rule.rule_id == "SURCHARGE"
+    assert resolved.provenance.rule_id == "SURCHARGE"
+    assert resolved.provenance.applies_on(date(2026, 4, 1))
+
+
+def test_verified_surcharge_rule_fails_outside_tax_year() -> None:
+    with pytest.raises(StatutoryRuleUnavailableError, match="not effective"):
+        get_verified_rule("SURCHARGE", on_date=date(2027, 4, 1))
 
 
 def test_verified_rule_cannot_be_used_before_effective_date() -> None:
