@@ -12,6 +12,9 @@ from tax_engine.statutory.rule_registry import StatutoryRule, VerificationStatus
 _INCOME_TAX_ACT_2025_URL = (
     "https://incometaxindia.gov.in/Documents/Act/Income-tax-Act-2025.pdf"
 )
+_FINANCE_ACT_2026_URL = (
+    "https://www.incometaxindia.gov.in/documents/d/guest/finance-act-2026-pdf-1"
+)
 
 
 VERIFIED_RULE_PROVENANCE: dict[str, StatutoryRuleProvenance] = {
@@ -57,6 +60,36 @@ VERIFIED_RULE_PROVENANCE: dict[str, StatutoryRuleProvenance] = {
                 title="Income-tax Act, 2025",
                 reference="Sections 155 and 156",
                 source_url=_INCOME_TAX_ACT_2025_URL,
+            ),
+        ),
+    ),
+    "SURCHARGE": StatutoryRuleProvenance(
+        rule_id="SURCHARGE",
+        rule_version="2026-27.1",
+        act=IncomeTaxAct.ACT_2025,
+        effective_from=date(2026, 4, 1),
+        effective_to=date(2027, 3, 31),
+        sources=(
+            StatutorySource(
+                authority=SourceAuthority.ACT,
+                title="Finance Act, 2026",
+                reference="Section 3 read with Part I-B of the First Schedule",
+                source_url=_FINANCE_ACT_2026_URL,
+            ),
+        ),
+    ),
+    "HEALTH_EDUCATION_CESS": StatutoryRuleProvenance(
+        rule_id="HEALTH_EDUCATION_CESS",
+        rule_version="2026-27.1",
+        act=IncomeTaxAct.ACT_2025,
+        effective_from=date(2026, 4, 1),
+        effective_to=date(2027, 3, 31),
+        sources=(
+            StatutorySource(
+                authority=SourceAuthority.ACT,
+                title="Finance Act, 2026",
+                reference="Health and Education Cess provisions for TY 2026-27",
+                source_url=_FINANCE_ACT_2026_URL,
             ),
         ),
     ),
