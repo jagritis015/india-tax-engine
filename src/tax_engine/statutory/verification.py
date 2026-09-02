@@ -93,6 +93,21 @@ VERIFIED_RULE_PROVENANCE: dict[str, StatutoryRuleProvenance] = {
             ),
         ),
     ),
+    "ROUNDING": StatutoryRuleProvenance(
+        rule_id="ROUNDING",
+        rule_version="2026-27.1",
+        act=IncomeTaxAct.ACT_2025,
+        effective_from=date(2026, 4, 1),
+        effective_to=None,
+        sources=(
+            StatutorySource(
+                authority=SourceAuthority.ACT,
+                title="Income-tax Act, 2025",
+                reference="Section 516",
+                source_url=_INCOME_TAX_ACT_2025_URL,
+            ),
+        ),
+    ),
 }
 
 
