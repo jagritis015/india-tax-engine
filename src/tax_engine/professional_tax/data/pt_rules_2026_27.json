@@ -1,0 +1,165 @@
+{
+  "tax_year": "2026-27",
+  "effective_from": "2026-04-01",
+  "jurisdictions": {
+    "andhra_pradesh": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "arunachal_pradesh": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "assam": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER",
+      "basis": "MONTHLY",
+      "source_authority": "Commissionerate of Taxes, Government of Assam"
+    },
+    "bihar": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER",
+      "basis": "ANNUAL",
+      "source_authority": "Commercial Taxes Department, Government of Bihar",
+      "notes": "Annual employee PT liability schedule verified. Live payroll routing waits for authoritative annual-income context.",
+      "context_requirement": "ANNUAL_SALARY_OR_WAGES"
+    },
+    "chhattisgarh": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "goa": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "gujarat": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER"
+    },
+    "haryana": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "himachal_pradesh": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "jharkhand": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER",
+      "basis": "ANNUAL",
+      "source_authority": "Commercial Taxes Department, Government of Jharkhand",
+      "notes": "Annual employee PT liability schedule verified. Do not derive annual salary as monthly salary x 12.",
+      "context_requirement": "ANNUAL_SALARY_OR_WAGES"
+    },
+    "karnataka": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER"
+    },
+    "kerala": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "madhya_pradesh": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "maharashtra": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER"
+    },
+    "manipur": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "meghalaya": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "mizoram": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "nagaland": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER",
+      "basis": "MONTHLY",
+      "source_authority": "Department of State Taxes, Government of Nagaland"
+    },
+    "odisha": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE",
+      "notes": "PT not applicable from 2026-04-01; historical periods require historical rules."
+    },
+    "punjab": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE",
+      "notes": "Punjab State Development Tax is a separate statutory component and must not be modeled as PT."
+    },
+    "rajasthan": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "sikkim": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "tamil_nadu": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER",
+      "basis": "HALF_YEARLY"
+    },
+    "telangana": {
+      "applicability": "APPLICABLE",
+      "rate_status": "VERIFIED_EXISTING_HANDLER"
+    },
+    "tripura": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "uttar_pradesh": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "uttarakhand": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "west_bengal": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    },
+    "andaman_and_nicobar_islands": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "chandigarh": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "dadra_and_nagar_haveli_and_daman_and_diu": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "delhi": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "jammu_and_kashmir": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "ladakh": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "lakshadweep": {
+      "applicability": "NOT_APPLICABLE",
+      "rate_status": "NOT_APPLICABLE"
+    },
+    "puducherry": {
+      "applicability": "APPLICABLE",
+      "rate_status": "PENDING_VERIFICATION"
+    }
+  }
+}

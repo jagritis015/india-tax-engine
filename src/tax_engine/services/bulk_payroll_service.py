@@ -66,6 +66,38 @@ def _regime(value):
     return mapping[normalized]
 
 
+
+def _decimal_or_none(value):
+    """
+    Convert optional numeric CSV values to Decimal.
+
+    Blank cells and pandas NaN values are treated as missing.
+    """
+    if value is None:
+        return None
+
+    try:
+        import pandas as pd
+
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+
+    text = str(value).strip()
+
+    if text.lower() in {
+        "",
+        "nan",
+        "none",
+        "null",
+        "nat",
+    }:
+        return None
+
+    return Decimal(text)
+
+
 def employee_from_row(row) -> EmployeePayrollInput:
     return EmployeePayrollInput(
         employee_id=str(row["employee_id"]),
@@ -142,6 +174,11 @@ def employee_from_row(row) -> EmployeePayrollInput:
             row.get("prior_epf_member")
         ),
 
+        pt_annual_salary_or_wages=(
+            _decimal_or_none(
+                row.get("pt_annual_salary_or_wages")
+            )
+        ),
         pt_half_year_salary_or_wages=(
             None
             if pd.isna(

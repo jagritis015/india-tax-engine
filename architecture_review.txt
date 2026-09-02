@@ -1,0 +1,855 @@
+===== APP IMPORTS + ENTRYPOINT =====
+from datetime import date
+from decimal import Decimal
+
+import streamlit as st
+
+import pandas as pd
+
+from tax_engine.services.bulk_payroll_service import (
+    run_bulk_payroll,
+)
+
+from tax_engine.payroll.employee import (
+    EmployeePayrollInput,
+    Sex,
+    TaxRegime,
+)
+from tax_engine.services.payroll_service import (
+    run_employee_payroll,
+)
+
+
+st.set_page_config(
+    page_title="India Payroll Engine",
+    page_icon="₹",
+    layout="wide",
+)
+
+st.title("India Payroll Engine")
+st.caption(
+    "TY 2026-27 • Employee TDS • PF • Professional Tax"
+)
+
+st.info(
+    "This is the first controlled V1 interface. "
+    "Verified statutory rules are calculated automatically. "
+    "Unsupported or unresolved cases are marked REVIEW_REQUIRED."
+)
+
+mode = st.radio(
+    "Mode",
+    [
+        "Single Employee",
+        "Bulk Payroll",
+    ],
+    horizontal=True,
+)
+
+if mode == "Bulk Payroll":
+    st.subheader("Bulk Payroll")
+
+    st.caption(
+        "Upload a payroll CSV. Each employee is validated "
+        "and processed independently."
+    )
+
+    with open(
+        "templates/payroll_upload_template.csv",
+        "rb",
+    ) as template_file:
+        st.download_button(
+            "Download CSV template",
+            data=template_file,
+            file_name="payroll_upload_template.csv",
+            mime="text/csv",
+        )
+
+    uploaded_file = st.file_uploader(
+        "Upload payroll CSV",
+        type=["csv"],
+    )
+
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+
+        st.write("Input preview")
+        st.dataframe(
+            df,
+            use_container_width=True,
+        )
+
+        if st.button(
+            "Process Bulk Payroll",
+            type="primary",
+        ):
+            results_df = run_bulk_payroll(df)
+
+            st.subheader("Payroll Results")
+
+            st.dataframe(
+                results_df,
+                use_container_width=True,
+            )
+
+            calculated = (
+                results_df["status"] == "CALCULATED"
+            ).sum()
+
+            review = (
+                results_df["status"] == "REVIEW_REQUIRED"
+            ).sum()
+
+            blocked = (
+                results_df["status"] == "BLOCKED"
+            ).sum()
+
+            c1, c2, c3 = st.columns(3)
+
+            c1.metric(
+                "Calculated",
+                int(calculated),
+            )
+
+            c2.metric(
+                "Review Required",
+                int(review),
+            )
+
+            c3.metric(
+                "Blocked",
+                int(blocked),
+            )
+
+            csv_output = results_df.to_csv(
+                index=False
+            ).encode("utf-8")
+
+            st.download_button(
+                "Download payroll results",
+                data=csv_output,
+                file_name="payroll_results.csv",
+                mime="text/csv",
+            )
+
+    st.stop()
+
+
+INDIAN_STATES_UTS = [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+    "Andaman and Nicobar Islands",
+    "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi",
+    "Jammu and Kashmir",
+    "Ladakh",
+    "Lakshadweep",
+    "Puducherry",
+]
+
+
+def money(value):
+    if value is None:
+        return "—"
+
+    value = Decimal(str(value))
+
+    return f"₹{value:,.0f}"
+
+
+with st.form("payroll_form"):
+
+    st.subheader("Employee")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        employee_id = st.text_input(
+            "Employee ID",
+            value="EMP001",
+        )
+
+        employee_name = st.text_input(
+            "Employee name",
+            value="Test Employee",
+        )
+
+        pan = st.text_input(
+            "PAN",
+            value="ABCDE1234F",
+        )
+
+    with col2:
+        sex_value = st.selectbox(
+            "Sex",
+            ["Male", "Female", "Other"],
+        )
+
+        date_of_joining = st.date_input(
+            "Date of joining",
+            value=date(2026, 4, 1),
+        )
+
+        work_state = st.selectbox(
+            "Work state / UT",
+
+===== PAYROLL SERVICE =====
+from tax_engine.payroll.employee import EmployeePayrollInput
+from tax_engine.payroll.payroll_engine import calculate_monthly_payroll
+
+
+def run_employee_payroll(
+    employee: EmployeePayrollInput,
+) -> dict:
+    """
+    Stable application-facing payroll entry point.
+
+    UI, batch processors, APIs and AI agents should call
+    this service instead of importing calculation internals.
+    """
+
+    return calculate_monthly_payroll(employee)
+
+===== PAYROLL ENGINE =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import EmployeePayrollInput
+from tax_engine.payroll.payroll_result import PayrollResult
+from tax_engine.pf.pf_calculator import calculate_employee_pf
+from tax_engine.pf.pf_resolver import (
+    resolve_higher_wage_contribution,
+    resolve_pf_applicability,
+)
+from tax_engine.professional_tax.models import PTStatus
+from tax_engine.professional_tax.pt_engine import (
+    calculate_professional_tax,
+)
+from tax_engine.tds.salary_projection import current_month_gross
+from tax_engine.tds.tds_engine import calculate_employee_tds
+
+
+ZERO = Decimal("0")
+
+
+def calculate_monthly_payroll(
+    employee: EmployeePayrollInput,
+) -> dict:
+    """
+    Combined monthly statutory payroll engine.
+
+    Calculates:
+    - Salary TDS
+    - Employee PF
+    - Professional Tax
+    - Total statutory deductions
+    - Net salary
+
+    If a required statutory component cannot be determined,
+    status becomes REVIEW_REQUIRED and final net salary is
+    intentionally not produced.
+    """
+
+    gross_salary = current_month_gross(employee)
+
+    # -------------------------
+    # Salary TDS
+    # -------------------------
+    tds_result = calculate_employee_tds(employee)
+    monthly_tds = tds_result["current_month_tds"]
+
+    tds_review_required = (
+        tds_result.get("status") == "REVIEW_REQUIRED"
+    )
+
+    # -------------------------
+    # Employee PF
+    # -------------------------
+    pf_applicability = resolve_pf_applicability(employee)
+    higher_wage_result = resolve_higher_wage_contribution(employee)
+
+    pf_review_required = (
+        pf_applicability["review_required"]
+        or higher_wage_result["review_required"]
+    )
+
+    pf_result = None
+    employee_pf = ZERO
+
+    if not pf_review_required:
+        pf_is_applicable = pf_applicability["pf_applicable"]
+
+        if pf_is_applicable:
+            if employee.pf_wages is None:
+                pf_review_required = True
+            else:
+                pf_result = calculate_employee_pf(
+                    pf_wages=employee.pf_wages,
+                    pf_applicable=True,
+                    contribution_rate=employee.pf_contribution_rate,
+                    contribute_on_higher_wages=(
+                        higher_wage_result["allowed"]
+                    ),
+                    international_worker=employee.international_worker,
+                )
+
+                employee_pf = pf_result["employee_pf"]
+
+        else:
+            pf_result = calculate_employee_pf(
+                pf_wages=ZERO,
+                pf_applicable=False,
+            )
+
+    # -------------------------
+    # Professional Tax
+    # -------------------------
+    pt_result = calculate_professional_tax(
+        work_state=employee.work_state,
+        monthly_salary_or_wages=gross_salary,
+        payroll_month=employee.payroll_month,
+        tax_year=employee.tax_year,
+        sex=employee.sex,
+        pt_half_year_salary_or_wages=(
+            employee.pt_half_year_salary_or_wages
+        ),
+        pt_days_employed_in_half_year=(
+            employee.pt_days_employed_in_half_year
+        ),
+        pt_already_deducted_for_half_year=(
+            employee.pt_already_deducted_for_half_year
+        ),
+    )
+
+    pt_review_required = (
+        pt_result.status == PTStatus.REVIEW_REQUIRED
+    )
+
+    # -------------------------
+    # Overall status
+    # -------------------------
+    review_required = (
+        tds_review_required
+        or pf_review_required
+        or pt_review_required
+    )
+
+    if review_required:
+        result = PayrollResult(
+            status="REVIEW_REQUIRED",
+            employee_id=employee.employee_id,
+            employee_name=employee.employee_name,
+            tax_year=employee.tax_year,
+            payroll_month=employee.payroll_month,
+            gross_salary=gross_salary,
+            tds=monthly_tds,
+            employee_pf=(
+                None if pf_review_required else employee_pf
+            ),
+            professional_tax=(
+                None if pt_review_required
+                else pt_result.professional_tax
+            ),
+            total_deductions=None,
+            net_salary=None,
+            tds_breakdown=tds_result,
+            pf_breakdown=pf_result,
+            pt_breakdown=(
+                pt_result.model_dump()
+                if hasattr(pt_result, "model_dump")
+                else pt_result
+            ),
+        )
+
+        return result.model_dump()
+
+    professional_tax = pt_result.professional_tax
+
+    total_deductions = (
+        monthly_tds
+        + employee_pf
+        + professional_tax
+    )
+
+    net_salary = gross_salary - total_deductions
+
+    result = PayrollResult(
+        status="CALCULATED",
+        employee_id=employee.employee_id,
+        employee_name=employee.employee_name,
+        tax_year=employee.tax_year,
+        payroll_month=employee.payroll_month,
+        gross_salary=gross_salary,
+        tds=monthly_tds,
+        employee_pf=employee_pf,
+        professional_tax=professional_tax,
+        total_deductions=total_deductions,
+        net_salary=net_salary,
+        tds_breakdown=tds_result,
+        pf_breakdown=pf_result,
+        pt_breakdown=(
+            pt_result.model_dump()
+            if hasattr(pt_result, "model_dump")
+            else pt_result
+        ),
+    )
+
+    return result.model_dump()
+
+===== PAYROLL RESULT =====
+from decimal import Decimal
+from typing import Any, Literal
+
+from pydantic import BaseModel
+
+
+class PayrollResult(BaseModel):
+    """
+    Canonical output contract for one employee's monthly payroll
+    statutory deduction calculation.
+    """
+
+    status: Literal["CALCULATED", "REVIEW_REQUIRED"]
+
+    employee_id: str
+    employee_name: str
+
+    tax_year: str
+    payroll_month: int
+
+    gross_salary: Decimal
+
+    tds: Decimal | None = None
+    employee_pf: Decimal | None = None
+    professional_tax: Decimal | None = None
+
+    total_deductions: Decimal | None = None
+    net_salary: Decimal | None = None
+
+    tds_breakdown: dict[str, Any] | None = None
+    pf_breakdown: dict[str, Any] | None = None
+    pt_breakdown: Any | None = None
+
+===== EMPLOYEE MODEL =====
+from datetime import date
+from decimal import Decimal
+from enum import Enum
+
+from pydantic import BaseModel, Field
+
+
+class Sex(str, Enum):
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+
+
+class TaxRegime(str, Enum):
+    NEW = "new"
+    OLD = "old"
+
+
+class EmployeePayrollInput(BaseModel):
+    # Employee identity
+    employee_id: str
+    employee_name: str
+    pan: str | None = None
+
+    # Employment information
+    sex: Sex | None = None
+
+
+    date_of_joining: date
+    work_state: str
+    tax_regime: TaxRegime | None = None
+    regime_declared: bool = False
+
+    # Current month's earnings
+    basic_salary: Decimal = Field(default=Decimal("0"), ge=0)
+    dearness_allowance: Decimal = Field(default=Decimal("0"), ge=0)
+    hra: Decimal = Field(default=Decimal("0"), ge=0)
+    special_allowance: Decimal = Field(default=Decimal("0"), ge=0)
+    bonus: Decimal = Field(default=Decimal("0"), ge=0)
+    commission: Decimal = Field(default=Decimal("0"), ge=0)
+    other_taxable_earnings: Decimal = Field(default=Decimal("0"), ge=0)
+
+    # Payroll component history for the Tax Year
+    basic_salary_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+    dearness_allowance_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+    hra_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+
+    # Payroll history for the Tax Year
+    taxable_salary_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+    tds_deducted_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+
+    # Previous employer information, if applicable
+    previous_employer_taxable_salary: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    previous_employer_tds: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    # HRA exemption inputs
+    annual_rent_paid: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    hra_location: str | None = None
+    da_forms_part_of_retirement_benefits: bool = False
+
+    # Employee tax declarations
+    hra_exemption_claimed: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    professional_tax_paid: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    deduction_80c: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    deduction_80d: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    deduction_nps_employee: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+    deduction_nps_employer: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    # Additional Tax Year income inputs
+    other_income_declared: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    house_property_income_or_loss: Decimal = Field(
+        default=Decimal("0")
+    )
+
+    taxable_perquisites_ytd: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    current_month_taxable_perquisites: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    projected_future_bonus: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    projected_future_variable_pay: Decimal = Field(
+        default=Decimal("0"), ge=0
+    )
+
+    # Declaration / evidence controls
+    previous_employer_details_verified: bool = False
+    other_income_declared_by_employee: bool = False
+    house_property_evidence_verified: bool = False
+    tax_declaration_evidence_verified: bool = False
+
+    # PF inputs
+    pf_applicable: bool | None = None
+    pf_wages: Decimal | None = Field(default=None, ge=0)
+
+    prior_epf_member: bool = False
+    joining_pf_wages: Decimal | None = Field(default=None, ge=0)
+
+    international_worker: bool = False
+
+    contribute_on_higher_pf_wages: bool = False
+    higher_pf_wage_option_verified: bool = False
+
+    pf_contribution_rate: Decimal = Field(
+        default=Decimal("0.12"), ge=0
+    )
+
+    # Professional Tax half-year context
+    pt_half_year_salary_or_wages: Decimal | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    pt_days_employed_in_half_year: int | None = Field(
+        default=None,
+        ge=0,
+        le=184,
+    )
+
+    pt_already_deducted_for_half_year: Decimal = Field(
+        default=Decimal("0"),
+        ge=0,
+    )
+
+    # Payroll period
+    payroll_month: int = Field(ge=1, le=12)
+    tax_year: str = Field(pattern=r"^\d{4}-\d{2}$")
+
+===== PT ENGINE =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import Sex
+from tax_engine.professional_tax.bootstrap import (
+    register_professional_tax_rules,
+)
+from tax_engine.professional_tax.models import (
+    ProfessionalTaxResult,
+    PTStatus,
+)
+from tax_engine.professional_tax.registry import (
+    get_pt_handler,
+    is_pt_not_applicable,
+)
+from tax_engine.professional_tax.state_registry import normalize_state
+
+
+_RULES_LOADED = False
+
+
+def _ensure_rules_loaded() -> None:
+    global _RULES_LOADED
+
+    if not _RULES_LOADED:
+        register_professional_tax_rules()
+        _RULES_LOADED = True
+
+
+def calculate_professional_tax(
+    work_state: str,
+    monthly_salary_or_wages: Decimal,
+    payroll_month: int,
+    tax_year: str,
+    sex: Sex | None = None,
+    pt_half_year_salary_or_wages: Decimal | None = None,
+    pt_days_employed_in_half_year: int | None = None,
+    pt_already_deducted_for_half_year: Decimal = Decimal("0"),
+) -> ProfessionalTaxResult:
+
+    if monthly_salary_or_wages < Decimal("0"):
+        raise ValueError(
+            "monthly_salary_or_wages cannot be negative"
+        )
+
+    if payroll_month < 1 or payroll_month > 12:
+        raise ValueError(
+            "payroll_month must be between 1 and 12"
+        )
+
+    _ensure_rules_loaded()
+
+    state = normalize_state(work_state)
+
+    handler = get_pt_handler(
+        state=state,
+        tax_year=tax_year,
+    )
+
+    if handler is not None:
+        return handler(
+            monthly_salary_or_wages=monthly_salary_or_wages,
+            payroll_month=payroll_month,
+            tax_year=tax_year,
+            sex=sex,
+            pt_half_year_salary_or_wages=(
+                pt_half_year_salary_or_wages
+            ),
+            pt_days_employed_in_half_year=(
+                pt_days_employed_in_half_year
+            ),
+            pt_already_deducted_for_half_year=(
+                pt_already_deducted_for_half_year
+            ),
+        )
+
+    if is_pt_not_applicable(
+        state=state,
+        tax_year=tax_year,
+    ):
+        return ProfessionalTaxResult(
+            state=state,
+            tax_year=tax_year,
+            payroll_month=payroll_month,
+            monthly_salary_or_wages=monthly_salary_or_wages,
+            professional_tax=Decimal("0"),
+            status=PTStatus.NOT_APPLICABLE,
+            rule_reference="Verified as not applicable",
+        )
+
+    return ProfessionalTaxResult(
+        state=state,
+        tax_year=tax_year,
+        payroll_month=payroll_month,
+        monthly_salary_or_wages=monthly_salary_or_wages,
+        professional_tax=Decimal("0"),
+        status=PTStatus.REVIEW_REQUIRED,
+        rule_reference=None,
+        review_reason=(
+            f"Professional Tax rule not verified for "
+            f"{work_state} for TY {tax_year}"
+        ),
+    )
+
+===== TDS ENGINE =====
+from decimal import Decimal
+
+from tax_engine.payroll.employee import EmployeePayrollInput
+from tax_engine.tds.annual_tax import calculate_annual_tax
+from tax_engine.tds.income_adjustments import (
+    calculate_declared_income_adjustments,
+)
+from tax_engine.tds.monthly_tds import calculate_monthly_tds
+from tax_engine.tds.regime_resolver import resolve_tax_regime
+from tax_engine.tds.salary_projection import (
+    months_remaining_including_current,
+    project_tax_year_salary,
+)
+from tax_engine.tds.taxable_salary import calculate_taxable_salary
+
+
+ZERO = Decimal("0")
+
+
+def calculate_employee_tds(
+    employee: EmployeePayrollInput,
+) -> dict:
+    """
+    End-to-end salary TDS computation for TY 2026-27.
+
+    Section 392 flow:
+    1. Resolve tax regime
+    2. Project salary income
+    3. Compute taxable salary
+    4. Add declared other taxable income
+    5. Apply verified house-property adjustment
+    6. Calculate annual tax liability
+    7. Credit valid prior TDS
+    8. Allocate remaining liability across payroll months
+
+    Evidence-sensitive inputs propagate REVIEW_REQUIRED.
+    """
+
+    regime = resolve_tax_regime(employee)
+
+    projected_salary = project_tax_year_salary(employee)
+
+    taxable_salary_result = calculate_taxable_salary(
+        employee=employee,
+        projected_salary=projected_salary,
+    )
+
+    adjustment_result = calculate_declared_income_adjustments(
+        employee
+    )
+
+    estimated_total_income = (
+        taxable_salary_result["taxable_salary"]
+        + adjustment_result["other_income"]
+        + adjustment_result["house_property_adjustment"]
+    )
+
+    estimated_total_income = max(
+        ZERO,
+        estimated_total_income,
+    )
+
+    annual_tax_result = calculate_annual_tax(
+        taxable_income=estimated_total_income,
+        tax_year=employee.tax_year,
+        regime=regime,
+        resident_individual=True,
+    )
+
+    remaining_months = months_remaining_including_current(
+        employee.payroll_month
+    )
+
+    previous_employer_tds_credit = ZERO
+
+    if employee.previous_employer_details_verified:
+        previous_employer_tds_credit = (
+            employee.previous_employer_tds
+        )
+
+    monthly_tds_result = calculate_monthly_tds(
+        annual_tax_liability=annual_tax_result[
+            "annual_tax_liability"
+        ],
+        tds_deducted_current_employer_ytd=(
+            employee.tds_deducted_ytd
+        ),
+        previous_employer_tds=previous_employer_tds_credit,
+        remaining_payroll_months=remaining_months,
+    )
+
+    status = (
+        "REVIEW_REQUIRED"
+        if adjustment_result["review_required"]
+        else "CALCULATED"
+    )
+
+    return {
+        "status": status,
+        "employee_id": employee.employee_id,
+        "employee_name": employee.employee_name,
+        "tax_year": employee.tax_year,
+        "regime": regime.value,
+
+        "projected_salary": projected_salary,
+        "taxable_salary": taxable_salary_result[
+            "taxable_salary"
+        ],
+
+        "declared_other_income": adjustment_result[
+            "other_income"
+        ],
+        "house_property_adjustment": adjustment_result[
+            "house_property_adjustment"
+        ],
+
+        "estimated_total_income": estimated_total_income,
+
+        "annual_tax_liability": annual_tax_result[
+            "annual_tax_liability"
+        ],
+
+        "tds_deducted_ytd": employee.tds_deducted_ytd,
+        "previous_employer_tds_credit": (
+            previous_employer_tds_credit
+        ),
+
+        "remaining_payroll_months": remaining_months,
+        "current_month_tds": monthly_tds_result[
+            "current_month_tds"
+        ],
+
+        "income_adjustment_breakdown": adjustment_result,
+        "taxable_salary_breakdown": taxable_salary_result,
+        "annual_tax_breakdown": annual_tax_result,
+        "monthly_tds_breakdown": monthly_tds_result,
+    }

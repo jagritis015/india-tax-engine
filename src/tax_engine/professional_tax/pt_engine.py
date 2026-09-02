@@ -13,9 +13,14 @@ from tax_engine.professional_tax.registry import (
     is_pt_not_applicable,
 )
 from tax_engine.professional_tax.state_registry import normalize_state
+from tax_engine.professional_tax.applicability import (
+    PTApplicability,
+    get_pt_applicability,
+)
 
 
 _RULES_LOADED = False
+
 
 
 def _ensure_rules_loaded() -> None:
@@ -33,6 +38,7 @@ def calculate_professional_tax(
     tax_year: str,
     sex: Sex | None = None,
     pt_half_year_salary_or_wages: Decimal | None = None,
+    pt_annual_salary_or_wages: Decimal | None = None,
     pt_days_employed_in_half_year: int | None = None,
     pt_already_deducted_for_half_year: Decimal = Decimal("0"),
 ) -> ProfessionalTaxResult:
@@ -65,6 +71,9 @@ def calculate_professional_tax(
             pt_half_year_salary_or_wages=(
                 pt_half_year_salary_or_wages
             ),
+            pt_annual_salary_or_wages=(
+                pt_annual_salary_or_wages
+            ),
             pt_days_employed_in_half_year=(
                 pt_days_employed_in_half_year
             ),
@@ -73,6 +82,34 @@ def calculate_professional_tax(
             ),
         )
 
+    applicability_rule = get_pt_applicability(
+        state=state,
+        tax_year=tax_year,
+    )
+
+    if (
+        applicability_rule is not None
+        and applicability_rule.applicability
+        == PTApplicability.NOT_APPLICABLE
+    ):
+        return ProfessionalTaxResult(
+            state=state,
+            tax_year=tax_year,
+            payroll_month=payroll_month,
+            monthly_salary_or_wages=monthly_salary_or_wages,
+            professional_tax=Decimal("0"),
+            status=PTStatus.NOT_APPLICABLE,
+            rule_reference=(
+                "Locked PT applicability registry: "
+                + (
+                    applicability_rule.notes
+                    or "Professional Tax not applicable."
+                )
+            ),
+            review_reason=None,
+        )
+
+    # Backward compatibility with the older explicit registry.
     if is_pt_not_applicable(
         state=state,
         tax_year=tax_year,
@@ -85,6 +122,7 @@ def calculate_professional_tax(
             professional_tax=Decimal("0"),
             status=PTStatus.NOT_APPLICABLE,
             rule_reference="Verified as not applicable",
+            review_reason=None,
         )
 
     return ProfessionalTaxResult(

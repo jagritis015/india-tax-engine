@@ -1,17 +1,19 @@
 from decimal import Decimal
 
+from tax_engine.professional_tax.declarative import (
+    calculate_declarative_pt,
+)
 from tax_engine.professional_tax.models import (
     ProfessionalTaxResult,
     PTStatus,
 )
-
-
-THRESHOLD = Decimal("25000")
-NORMAL_MONTHLY_PT = Decimal("200")
-FEBRUARY_PT = Decimal("300")
+from tax_engine.professional_tax.verified_schedules_2026_27 import (
+    ASSAM_2026_27,
+)
 
 
 def calculate(
+    *,
     monthly_salary_or_wages: Decimal,
     payroll_month: int,
     tax_year: str,
@@ -22,24 +24,22 @@ def calculate(
     pt_annual_salary_or_wages=None,
     **kwargs,
 ) -> ProfessionalTaxResult:
+    monthly_salary_or_wages = Decimal(
+        monthly_salary_or_wages
+    )
 
-    if monthly_salary_or_wages < THRESHOLD:
-        professional_tax = Decimal("0")
-    elif payroll_month == 2:
-        professional_tax = FEBRUARY_PT
-    else:
-        professional_tax = NORMAL_MONTHLY_PT
+    amount = calculate_declarative_pt(
+        rule=ASSAM_2026_27,
+        monthly_income=monthly_salary_or_wages,
+    )
 
     return ProfessionalTaxResult(
-        state="karnataka",
+        state="assam",
         tax_year=tax_year,
         payroll_month=payroll_month,
         monthly_salary_or_wages=monthly_salary_or_wages,
-        professional_tax=professional_tax,
+        professional_tax=amount,
         status=PTStatus.CALCULATED,
-        rule_reference=(
-            "Karnataka Tax on Professions, Trades, "
-            "Callings and Employments Act - Schedule; "
-            "amendment effective 01-04-2025"
-        ),
+        rule_reference=ASSAM_2026_27.source_reference,
+        review_reason=None,
     )

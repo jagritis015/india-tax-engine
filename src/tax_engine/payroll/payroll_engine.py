@@ -99,6 +99,9 @@ def calculate_monthly_payroll(
         pt_half_year_salary_or_wages=(
             employee.pt_half_year_salary_or_wages
         ),
+        pt_annual_salary_or_wages=(
+            employee.pt_annual_salary_or_wages
+        ),
         pt_days_employed_in_half_year=(
             employee.pt_days_employed_in_half_year
         ),

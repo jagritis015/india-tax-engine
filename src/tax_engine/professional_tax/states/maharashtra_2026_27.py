@@ -11,7 +11,11 @@ def calculate(
     monthly_salary_or_wages: Decimal,
     payroll_month: int,
     tax_year: str,
-    sex: Sex | None = None,
+    sex=None,
+    pt_half_year_salary_or_wages=None,
+    pt_days_employed_in_half_year=None,
+    pt_already_deducted_for_half_year=None,
+    pt_annual_salary_or_wages=None,
     **kwargs,
 ) -> ProfessionalTaxResult:
 

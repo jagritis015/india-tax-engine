@@ -18,6 +18,22 @@ from tax_engine.services.payroll_service import (
     run_employee_payroll,
 )
 
+from tax_engine.ai.monthly_dashboard import (
+    build_monthly_dashboard_data,
+)
+
+from tax_engine.ai.compliance_evidence import (
+    build_employee_evidence_cases,
+)
+
+
+def money(value):
+    if value is None:
+        return "—"
+
+    value = Decimal(str(value))
+
+    return f"₹{value:,.0f}"
 
 st.set_page_config(
     page_title="India Payroll Engine",
@@ -41,9 +57,343 @@ mode = st.radio(
     [
         "Single Employee",
         "Bulk Payroll",
+        "Compliance Command Center",
     ],
     horizontal=True,
 )
+
+if mode == "Compliance Command Center":
+    st.subheader("Monthly Compliance Command Center")
+
+    st.caption(
+        "Company-level payroll readiness across TDS, PF and "
+        "Professional Tax. All monetary values originate from "
+        "the deterministic payroll engine."
+    )
+
+    compliance_file = st.file_uploader(
+        "Upload payroll CSV for compliance review",
+        type=["csv"],
+        key="compliance_upload",
+    )
+
+    if compliance_file is None:
+        st.info(
+            "Upload the payroll CSV template or a compatible "
+            "company payroll file to evaluate monthly readiness."
+        )
+        st.stop()
+
+    compliance_df = pd.read_csv(compliance_file)
+
+    st.write("Payroll input preview")
+    st.dataframe(
+        compliance_df,
+        use_container_width=True,
+    )
+
+    if st.button(
+        "Evaluate Monthly Compliance",
+        type="primary",
+        use_container_width=True,
+    ):
+        from tax_engine.services.compliance_run_service import (
+            process_company_compliance_file,
+        )
+
+        company_run = process_company_compliance_file(
+            compliance_df
+        )
+
+        st.subheader("Ingestion Control")
+
+        c1, c2, c3 = st.columns(3)
+
+        c1.metric(
+            "Uploaded",
+            company_run.uploaded_records,
+        )
+
+        c2.metric(
+            "Validated",
+            company_run.valid_records,
+        )
+
+        c3.metric(
+            "Quarantined",
+            company_run.quarantined_records,
+        )
+
+        if company_run.quarantine:
+            st.warning(
+                "Some records were quarantined. "
+                "Valid employee records were still processed."
+            )
+
+            quarantine_rows = [
+                {
+                    "Row": item.row_number,
+                    "Employee ID": item.employee_id,
+                    "Employee": item.employee_name,
+                    "Error": item.error,
+                    "Required action": item.action_required,
+                }
+                for item in company_run.quarantine
+            ]
+
+            st.dataframe(
+                pd.DataFrame(quarantine_rows),
+                use_container_width=True,
+            )
+
+        monthly = company_run.monthly_compliance
+
+        if monthly is None:
+            st.error(
+                "No valid employee records are available "
+                "for monthly compliance processing."
+            )
+            st.stop()
+
+        dashboard = build_monthly_dashboard_data(
+            monthly
+        )
+
+        st.divider()
+
+        final_approval = (
+            company_run.payroll_can_be_approved
+        )
+
+        if final_approval:
+            st.success(
+                "PAYROLL READY FOR APPROVAL"
+            )
+        else:
+            st.warning(
+                "PAYROLL REVIEW REQUIRED"
+            )
+
+        if company_run.quarantined_records:
+            st.error(
+                f"{company_run.quarantined_records} "
+                "employee record(s) must be corrected "
+                "before company payroll can be approved."
+            )
+
+        st.subheader("Payroll Readiness")
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        c1.metric(
+            "Employees",
+            dashboard["employees_processed"],
+        )
+
+        c2.metric(
+            "Ready",
+            dashboard["ready_for_payroll"],
+        )
+
+        c3.metric(
+            "Review Required",
+            dashboard["review_required"],
+        )
+
+        c4.metric(
+            "Readiness",
+            f'{dashboard["readiness_percentage"]}%',
+        )
+
+        st.subheader("Monthly Statutory Totals")
+
+        totals = dashboard["totals"]
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        c1.metric(
+            "Gross Payroll",
+            money(totals["gross_salary"]),
+        )
+
+        c2.metric(
+            "TDS",
+            money(totals["tds"]),
+        )
+
+        c3.metric(
+            "Employee PF",
+            money(totals["employee_pf"]),
+        )
+
+        c4.metric(
+            "Professional Tax",
+            money(totals["professional_tax"]),
+        )
+
+        st.subheader("Exception Intelligence")
+
+        exceptions = dashboard["exceptions"]
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        c1.metric(
+            "Affected Employees",
+            exceptions["affected_employees"],
+        )
+
+        c2.metric(
+            "TDS Exceptions",
+            exceptions["tds"],
+        )
+
+        c3.metric(
+            "PF Exceptions",
+            exceptions["pf"],
+        )
+
+        c4.metric(
+            "PT Exceptions",
+            exceptions["pt"],
+        )
+
+        queues = exceptions["queues"]
+
+        if not queues:
+            st.success(
+                "No compliance exceptions detected."
+            )
+        else:
+            for queue in queues:
+                with st.expander(
+                    f'{queue["component"]} • '
+                    f'{queue["issue_code"]} • '
+                    f'{queue["affected_count"]} employee(s)'
+                ):
+                    st.write(queue["title"])
+
+                    st.write(
+                        "**Recommended action:** "
+                        + queue["next_action"]
+                    )
+
+                    employee_rows = [
+                        {
+                            "Employee ID": employee[
+                                "employee_id"
+                            ],
+                            "Employee": employee[
+                                "employee_name"
+                            ],
+                            "Payroll Status": employee[
+                                "payroll_status"
+                            ],
+                        }
+                        for employee in queue["employees"]
+                    ]
+
+                    st.dataframe(
+                        pd.DataFrame(employee_rows),
+                        use_container_width=True,
+                    )
+
+        if dashboard["blocking_employee_ids"]:
+            st.subheader("Blocking Employees")
+
+            st.code(
+                "\n".join(
+                    dashboard["blocking_employee_ids"]
+                )
+            )
+
+        st.subheader("Compliance Evidence & Remediation")
+
+        evidence_cases = []
+
+        for employee_result in monthly.employee_results:
+            evidence_cases.extend(
+                build_employee_evidence_cases(
+                    employee_result
+                )
+            )
+
+        if not evidence_cases:
+            st.success(
+                "No unresolved compliance evidence requirements."
+            )
+        else:
+            for case in evidence_cases:
+                case_title = (
+                    f"{case.employee_id} · "
+                    f"{case.employee_name} · "
+                    f"{case.component}"
+                )
+
+                with st.expander(case_title):
+                    st.write(
+                        f"**Status:** {case.status}"
+                    )
+
+                    st.write(
+                        f"**Reason:** {case.reason}"
+                    )
+
+                    if case.missing_evidence:
+                        st.write(
+                            "**Required to resolve:**"
+                        )
+
+                        evidence_rows = [
+                            {
+                                "Requirement": req.label,
+                                "Status": req.status,
+                                "Required action": (
+                                    req.required_action
+                                ),
+                            }
+                            for req in case.missing_evidence
+                        ]
+
+                        st.dataframe(
+                            pd.DataFrame(evidence_rows),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+
+                    st.write(
+                        f"**Next action:** {case.next_action}"
+                    )
+
+                    if case.engine_amount_withheld:
+                        st.warning(
+                            "The statutory amount has been "
+                            "withheld until this requirement "
+                            "is resolved. No amount was estimated."
+                        )
+
+                    st.caption(
+                        case.assumption_policy
+                    )
+
+        st.divider()
+
+        with st.expander(
+            "Compliance engine payload"
+        ):
+            import json
+
+            st.json(
+                json.loads(
+                    json.dumps(
+                        dashboard,
+                        default=str,
+                    )
+                ),
+                expanded=False,
+            )
+
+    st.stop()
+
 
 if mode == "Bulk Payroll":
     st.subheader("Bulk Payroll")
@@ -174,13 +524,6 @@ INDIAN_STATES_UTS = [
 ]
 
 
-def money(value):
-    if value is None:
-        return "—"
-
-    value = Decimal(str(value))
-
-    return f"₹{value:,.0f}"
 
 
 with st.form("payroll_form"):

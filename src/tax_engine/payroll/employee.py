@@ -143,6 +143,11 @@ class EmployeePayrollInput(BaseModel):
         le=184,
     )
 
+    pt_annual_salary_or_wages: Decimal | None = Field(
+        default=None,
+        ge=0,
+    )
+
     pt_already_deducted_for_half_year: Decimal = Field(
         default=Decimal("0"),
         ge=0,

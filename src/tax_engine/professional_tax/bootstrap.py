@@ -1,3 +1,7 @@
+from tax_engine.professional_tax.states import jharkhand_2026_27
+from tax_engine.professional_tax.states import bihar_2026_27
+from tax_engine.professional_tax.states import assam_2026_27
+from tax_engine.professional_tax.states import nagaland_2026_27
 from tax_engine.professional_tax.registry import register_pt_handler
 from tax_engine.professional_tax.states import (
     gujarat_2026_27,
@@ -19,6 +23,30 @@ def register_professional_tax_rules() -> None:
         "telangana",
         "2026-27",
         telangana_2026_27.calculate,
+    )
+
+    register_pt_handler(
+        "nagaland",
+        "2026-27",
+        nagaland_2026_27.calculate,
+    )
+
+    register_pt_handler(
+        "assam",
+        "2026-27",
+        assam_2026_27.calculate,
+    )
+
+    register_pt_handler(
+        "jharkhand",
+        "2026-27",
+        jharkhand_2026_27.calculate,
+    )
+
+    register_pt_handler(
+        "bihar",
+        "2026-27",
+        bihar_2026_27.calculate,
     )
 
     register_pt_handler(
