@@ -83,4 +83,13 @@ TY_2026_27_RULES = {
         status=VerificationStatus.VERIFIED,
         source_reference="Finance Act, 2026",
     ),
+    "ROUNDING": StatutoryRule(
+        rule_id="ROUNDING",
+        tax_year="2026-27",
+        legislation="Income-tax Act, 2025",
+        provision="Section 516",
+        description="Rounding of total income and amounts payable or refundable to the nearest multiple of ten rupees",
+        status=VerificationStatus.VERIFIED,
+        source_reference="Income-tax Act, 2025, section 516",
+    ),
 }
