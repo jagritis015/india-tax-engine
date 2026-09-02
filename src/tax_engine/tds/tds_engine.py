@@ -87,6 +87,7 @@ def calculate_employee_tds(
         ),
         previous_employer_tds=previous_employer_tds_credit,
         remaining_payroll_months=remaining_months,
+        tax_year=employee.tax_year,
     )
 
     status = (
