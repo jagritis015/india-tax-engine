@@ -3,6 +3,7 @@ from decimal import Decimal
 from tax_engine.tds.monthly_tds import calculate_monthly_tds
 
 
+TAX_YEAR = "2026-27"
 TAX_YEAR_MONTHS = [
     4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3
 ]
@@ -22,6 +23,7 @@ def test_full_tax_year_reconciles_exactly():
             tds_deducted_current_employer_ytd=tds_ytd,
             previous_employer_tds=Decimal("0"),
             remaining_payroll_months=remaining_months,
+            tax_year=TAX_YEAR,
         )
 
         current_tds = result["current_month_tds"]
@@ -43,6 +45,7 @@ def test_last_month_clears_rounding_difference():
         tds_deducted_current_employer_ytd=tds_ytd,
         previous_employer_tds=Decimal("0"),
         remaining_payroll_months=1,
+        tax_year=TAX_YEAR,
     )
 
     assert result["remaining_tax"] == Decimal("8340")
@@ -61,8 +64,9 @@ def test_midyear_tax_revision_is_recovered_over_remaining_months():
     In August, bonus/increment changes estimated annual tax
     to Rs 1,80,000.
 
-    Section 392 adjustment should spread the revised balance
-    across the remaining payroll months.
+    Section 392 permits adjustment for excess or deficiency during
+    the Tax Year. This engine's current allocation policy spreads the
+    revised balance across the remaining payroll months.
     """
 
     original_liability = Decimal("120000")
@@ -77,6 +81,7 @@ def test_midyear_tax_revision_is_recovered_over_remaining_months():
             tds_deducted_current_employer_ytd=tds_ytd,
             previous_employer_tds=Decimal("0"),
             remaining_payroll_months=remaining_months,
+            tax_year=TAX_YEAR,
         )
 
         tds_ytd += result["current_month_tds"]
@@ -90,6 +95,7 @@ def test_midyear_tax_revision_is_recovered_over_remaining_months():
             tds_deducted_current_employer_ytd=tds_ytd,
             previous_employer_tds=Decimal("0"),
             remaining_payroll_months=remaining_months,
+            tax_year=TAX_YEAR,
         )
 
         tds_ytd += result["current_month_tds"]
@@ -112,6 +118,7 @@ def test_previous_employer_tds_reduces_current_employer_balance():
             tds_deducted_current_employer_ytd=current_employer_tds_ytd,
             previous_employer_tds=previous_employer_tds,
             remaining_payroll_months=remaining_months,
+            tax_year=TAX_YEAR,
         )
 
         current_employer_tds_ytd += result["current_month_tds"]
