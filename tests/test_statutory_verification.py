@@ -32,8 +32,13 @@ def test_verification_gate_fails_closed_when_evidence_is_missing():
         assert_verified_rule_has_authoritative_evidence(unsupported_rule)
 
 
-def test_review_required_rule_does_not_claim_verified_evidence():
-    rule = TY_2026_27_RULES["HRA_EXEMPTION"]
+def test_review_required_rule_does_not_require_verified_evidence():
+    source_rule = TY_2026_27_RULES["HRA_EXEMPTION"]
+    review_rule = replace(
+        source_rule,
+        rule_id="REVIEW_ONLY_RULE",
+        status=VerificationStatus.REVIEW_REQUIRED,
+    )
 
-    assert rule.status is VerificationStatus.REVIEW_REQUIRED
-    assert_verified_rule_has_authoritative_evidence(rule)
+    assert review_rule.status is VerificationStatus.REVIEW_REQUIRED
+    assert_verified_rule_has_authoritative_evidence(review_rule)
