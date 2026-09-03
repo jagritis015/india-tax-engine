@@ -50,9 +50,11 @@ TY_2026_27_RULES = {
         source_reference="Income-tax Act, 2025, section 123 and Schedule XV; CBDT Interplay and Transition FAQs Q8.10-Q8.11",
     ),
     "HRA_EXEMPTION": StatutoryRule(
-        rule_id="HRA_EXEMPTION", tax_year="2026-27", legislation="Income-tax Act, 2025",
-        provision="Salary exemption provisions and applicable rules", description="House rent allowance exemption",
-        status=VerificationStatus.REVIEW_REQUIRED, source_reference="Income-tax Act, 2025 and Income-tax Rules, 2026",
+        rule_id="HRA_EXEMPTION", tax_year="2026-27", legislation="Income-tax Act, 2025 and Income-tax Rules, 2026",
+        provision="Section 11 read with Schedule III Table Sl. No. 11 and Rule 279",
+        description="House rent allowance exemption limits and new-regime exclusion",
+        status=VerificationStatus.VERIFIED,
+        source_reference="Income-tax Act, 2025, section 11, Schedule III Table Sl. No. 11 and section 202(2)(a)(i); Income-tax Rules, 2026, rule 279",
     ),
     "SURCHARGE": StatutoryRule(
         rule_id="SURCHARGE", tax_year="2026-27", legislation="Finance Act, 2026",
