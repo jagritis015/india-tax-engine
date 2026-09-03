@@ -6,6 +6,7 @@ from tax_engine.statutory.rule_registry import StatutoryRule, VerificationStatus
 
 
 _INCOME_TAX_ACT_2025_URL = "https://incometaxindia.gov.in/Documents/Act/Income-tax-Act-2025.pdf"
+_INCOME_TAX_RULES_2026_URL = "https://www.incometaxindia.gov.in/documents/20117/13428530/notification-22-2026%2B1.pdf/4fb75298-2d6d-e61d-bf57-1a7195245db3"
 _FINANCE_ACT_2026_URL = "https://www.incometaxindia.gov.in/documents/d/guest/finance-act-2026-pdf-1"
 _CBDT_INTERPLAY_FAQ_URL = "https://www.incometaxindia.gov.in/documents/81799/11848482/FAQs-on-Interplay-and-Transition.pdf/05f80c1a-073c-a5d7-fb6f-55509242be53"
 
@@ -35,12 +36,30 @@ def _schedule_xv_sources() -> tuple[StatutorySource, ...]:
     )
 
 
+def _hra_sources() -> tuple[StatutorySource, ...]:
+    return (
+        StatutorySource(
+            authority=SourceAuthority.ACT,
+            title="Income-tax Act, 2025",
+            reference="Section 11 read with Schedule III Table Sl. No. 11 and section 202(2)(a)(i)",
+            source_url=_INCOME_TAX_ACT_2025_URL,
+        ),
+        StatutorySource(
+            authority=SourceAuthority.RULES,
+            title="Income-tax Rules, 2026",
+            reference="Rule 279",
+            source_url=_INCOME_TAX_RULES_2026_URL,
+        ),
+    )
+
+
 VERIFIED_RULE_PROVENANCE: dict[str, StatutoryRuleProvenance] = {
     "SALARY_TDS": StatutoryRuleProvenance("SALARY_TDS", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Section 392")),
     "NEW_REGIME_RATES": StatutoryRuleProvenance("NEW_REGIME_RATES", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Section 202")),
     "OLD_REGIME_RATES": StatutoryRuleProvenance("OLD_REGIME_RATES", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _finance_source("Section 3 read with Part I-B of the First Schedule")),
     "REBATE": StatutoryRuleProvenance("REBATE", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Sections 155 and 156")),
     "SCHEDULE_XV_DEDUCTION": StatutoryRuleProvenance("SCHEDULE_XV_DEDUCTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _schedule_xv_sources()),
+    "HRA_EXEMPTION": StatutoryRuleProvenance("HRA_EXEMPTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _hra_sources()),
     "SURCHARGE": StatutoryRuleProvenance("SURCHARGE", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _finance_source("Section 3 read with Part I-B of the First Schedule")),
     "HEALTH_EDUCATION_CESS": StatutoryRuleProvenance("HEALTH_EDUCATION_CESS", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _finance_source("Health and Education Cess provisions for TY 2026-27")),
     "ROUNDING": StatutoryRuleProvenance("ROUNDING", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Section 516")),

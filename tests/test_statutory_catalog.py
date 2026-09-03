@@ -17,9 +17,17 @@ def test_verified_rule_resolves_with_provenance() -> None:
     assert resolved.provenance.evidence_refs == ("Section 392",)
 
 
-def test_review_required_rule_fails_closed() -> None:
-    with pytest.raises(StatutoryRuleUnavailableError, match="not verified"):
-        get_verified_rule("HRA_EXEMPTION", on_date=date(2026, 4, 1))
+def test_verified_hra_rule_resolves_with_act_and_rules_provenance() -> None:
+    resolved = get_verified_rule("HRA_EXEMPTION", on_date=date(2026, 4, 1))
+
+    assert resolved.rule.rule_id == "HRA_EXEMPTION"
+    assert resolved.provenance.rule_id == "HRA_EXEMPTION"
+    assert "Rule 279" in resolved.provenance.evidence_refs
+
+
+def test_verified_hra_rule_fails_outside_tax_year() -> None:
+    with pytest.raises(StatutoryRuleUnavailableError, match="not effective"):
+        get_verified_rule("HRA_EXEMPTION", on_date=date(2027, 4, 1))
 
 
 def test_verified_surcharge_rule_resolves_inside_tax_year() -> None:
