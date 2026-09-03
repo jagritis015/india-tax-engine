@@ -44,8 +44,10 @@ TY_2026_27_RULES = {
     ),
     "SCHEDULE_XV_DEDUCTION": StatutoryRule(
         rule_id="SCHEDULE_XV_DEDUCTION", tax_year="2026-27", legislation="Income-tax Act, 2025",
-        provision="Section 123 read with Schedule XV", description="Specified deductions under Schedule XV",
-        status=VerificationStatus.REVIEW_REQUIRED, source_reference="Income-tax Act, 2025, section 123 and Schedule XV",
+        provision="Section 123 read with Schedule XV",
+        description="Aggregate deduction cap and regime eligibility for qualifying Schedule XV payments",
+        status=VerificationStatus.VERIFIED,
+        source_reference="Income-tax Act, 2025, section 123 and Schedule XV; CBDT Interplay and Transition FAQs Q8.10-Q8.11",
     ),
     "HRA_EXEMPTION": StatutoryRule(
         rule_id="HRA_EXEMPTION", tax_year="2026-27", legislation="Income-tax Act, 2025",
