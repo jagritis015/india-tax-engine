@@ -1,1 +1,227 @@
-aW1wb3J0IHNxbGl0ZTMKZnJvbSBkYXRldGltZSBpbXBvcnQgZGF0ZXRpbWUKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgpmcm9tIHRheF9lbmdpbmUucGxhdGZvcm0uYXVkaXQgaW1wb3J0IEFjY2Vzc0F1ZGl0RXZlbnQKZnJvbSB0YXhfZW5naW5lLnBsYXRmb3JtLmlkZW50aXR5IGltcG9ydCBNZW1iZXJzaGlwUmVjb3JkCmZyb20gdGF4X2VuZ2luZS5wbGF0Zm9ybS50ZW5hbmN5IGltcG9ydCBSb2xlCgoKY2xhc3MgU1FMaXRlUGxhdGZvcm1TdG9yZToKICAgICIiIlNRTGl0ZS1iYWNrZWQgdGVuYW50IGlkZW50aXR5IGRpcmVjdG9yeSBhbmQgYXV0aG9yaXphdGlvbiBhdWRpdCBzaW5rLgoKICAgIFRoZSBkYXRhYmFzZSBvd25zIGlkZW50aXR5IHVuaXF1ZW5lc3MgYW5kIHRlbmFudCByZWxhdGlvbnNoaXBzLiBUaGlzIGFkYXB0ZXIKICAgIGlzIGludGVudGlvbmFsbHkgc3luY2hyb25vdXMgYmVjYXVzZSB0aGUgc3Vycm91bmRpbmcgc2VydmljZSBjb250cmFjdHMgYXJlCiAgICBzeW5jaHJvbm91czsgYSBzZXJ2ZXIgZGVwbG95bWVudCBjYW4gcmVwbGFjZSBpdCB3aXRob3V0IGNoYW5naW5nIGNhbGxlcnMuCiAgICAiIiIKCiAgICBkZWYgX19pbml0X18oc2VsZiwgZGF0YWJhc2U6IHN0ciB8IFBhdGgpIC0+IE5vbmU6CiAgICAgICAgc2VsZi5fY29ubmVjdGlvbiA9IHNxbGl0ZTMuY29ubmVjdChzdHIoZGF0YWJhc2UpKQogICAgICAgIHNlbGYuX2Nvbm5lY3Rpb24ucm93X2ZhY3RvcnkgPSBzcWxpdGUzLlJvdwogICAgICAgIHNlbGYuX2Nvbm5lY3Rpb24uZXhlY3V0ZSgiUFJBR01BIGZvcmVpZ25fa2V5cyA9IE9OIikKICAgICAgICBzZWxmLl9jb25uZWN0aW9uLmV4ZWN1dGUoIlBSQUdNQSBidXN5X3RpbWVvdXQgPSA1MDAwIikKICAgICAgICBzZWxmLl9jcmVhdGVfc2NoZW1hKCkKCiAgICBkZWYgX2NyZWF0ZV9zY2hlbWEoc2VsZikgLT4gTm9uZToKICAgICAgICBzZWxmLl9jb25uZWN0aW9uLmV4ZWN1dGVzY3JpcHQoCiAgICAgICAgICAgICIiIgogICAgICAgICAgICBDUkVBVEUgVEFCTEUgSUYgTk9UIEVYSVNUUyBjb21wYW5pZXMgKAogICAgICAgICAgICAgICAgY29tcGFueV9pZCBURVhUIFBSSU1BUlkgS0VZLAogICAgICAgICAgICAgICAgbmFtZSBURVhUIE5PVCBOVUxMIENIRUNLIChsZW5ndGgobmFtZSkgPiAwKSwKICAgICAgICAgICAgICAgIGFjdGl2ZSBJTlRFR0VSIE5PVCBOVUxMIERFRkFVTFQgMSBDSEVDSyAoYWN0aXZlIElOICgwLCAxKSkKICAgICAgICAgICAgKTsKCiAgICAgICAgICAgIENSRUFURSBUQUJMRSBJRiBOT1QgRVhJU1RTIHVzZXJzICgKICAgICAgICAgICAgICAgIHVzZXJfaWQgVEVYVCBQUklNQVJZIEtFWSwKICAgICAgICAgICAgICAgIGVtYWlsIFRFWFQsCiAgICAgICAgICAgICAgICBhY3RpdmUgSU5URUdFUiBOT1QgTlVMTCBERUZBVUxUIDEgQ0hFQ0sgKGFjdGl2ZSBJTiAoMCwgMSkpCiAgICAgICAgICAgICk7CgogICAgICAgICAgICBDUkVBVEUgVEFCTEUgSUYgTk9UIEVYSVNUUyBtZW1iZXJzaGlwcyAoCiAgICAgICAgICAgICAgICBwcm92aWRlciBURVhUIE5PVCBOVUxMLAogICAgICAgICAgICAgICAgc3ViamVjdCBURVhUIE5PVCBOVUxMLAogICAgICAgICAgICAgICAgdXNlcl9pZCBURVhUIE5PVCBOVUxMIFJFRkVSRU5DRVMgdXNlcnModXNlcl9pZCksCiAgICAgICAgICAgICAgICBjb21wYW55X2lkIFRFWFQgTk9UIE5VTEwgUkVGRVJFTkNFUyBjb21wYW5pZXMoY29tcGFueV9pZCksCiAgICAgICAgICAgICAgICByb2xlIFRFWFQgTk9UIE5VTEwsCiAgICAgICAgICAgICAgICBlbXBsb3llZV9pZCBURVhULAogICAgICAgICAgICAgICAgYWN0aXZlIElOVEVHRVIgTk9UIE5VTEwgREVGQVVMVCAxIENIRUNLIChhY3RpdmUgSU4gKDAsIDEpKSwKICAgICAgICAgICAgICAgIFBSSU1BUlkgS0VZIChwcm92aWRlciwgc3ViamVjdCksCiAgICAgICAgICAgICAgICBDSEVDSyAocm9sZSBJTiAoCiAgICAgICAgICAgICAgICAgICAgJ2VtcGxveWVlJywgJ2hyJywgJ3BheXJvbGwnLCAnZmluYW5jZScsCiAgICAgICAgICAgICAgICAgICAgJ2NvbXBsaWFuY2UnLCAnYWRtaW4nLCAnbGVhZGVyc2hpcCcKICAgICAgICAgICAgICAgICkpLAogICAgICAgICAgICAgICAgQ0hFQ0sgKHJvbGUgIT0gJ2VtcGxveWVlJyBPUiBlbXBsb3llZV9pZCBJUyBOT1QgTlVMTCkKICAgICAgICAgICAgKTsKCiAgICAgICAgICAgIENSRUFURSBJTkRFWCBJRiBOT1QgRVhJU1RTIG1lbWJlcnNoaXBzX2NvbXBhbnlfaWRfaWR4CiAgICAgICAgICAgICAgICBPTiBtZW1iZXJzaGlwcyhjb21wYW55X2lkKTsKCiAgICAgICAgICAgIENSRUFURSBUQUJMRSBJRiBOT1QgRVhJU1RTIGFjY2Vzc19hdWRpdF9ldmVudHMgKAogICAgICAgICAgICAgICAgZXZlbnRfaWQgSU5URUdFUiBQUklNQVJZIEtFWSBBVVRPSU5DUkVNRU5ULAogICAgICAgICAgICAgICAgb2NjdXJyZWRfYXQgVEVYVCBOT1QgTlVMTCwKICAgICAgICAgICAgICAgIHVzZXJfaWQgVEVYVCBOT1QgTlVMTCwKICAgICAgICAgICAgICAgIGNvbXBhbnlfaWQgVEVYVCBOT1QgTlVMTCwKICAgICAgICAgICAgICAgIGFjdGlvbiBURVhUIE5PVCBOVUxMLAogICAgICAgICAgICAgICAgcmVzb3VyY2VfdHlwZSBURVhUIE5PVCBOVUxMLAogICAgICAgICAgICAgICAgcmVzb3VyY2VfaWQgVEVYVCBOT1QgTlVMTCwKICAgICAgICAgICAgICAgIGFsbG93ZWQgSU5URUdFUiBOT1QgTlVMTCBDSEVDSyAoYWxsb3dlZCBJTiAoMCwgMSkpLAogICAgICAgICAgICAgICAgcmVhc29uIFRFWFQKICAgICAgICAgICAgKTsKCiAgICAgICAgICAgIENSRUFURSBJTkRFWCBJRiBOT1QgRVhJU1RTIGF1ZGl0X2NvbXBhbnlfdGltZV9pZHgKICAgICAgICAgICAgICAgIE9OIGFjY2Vzc19hdWRpdF9ldmVudHMoY29tcGFueV9pZCwgb2NjdXJyZWRfYXQpOwoKICAgICAgICAgICAgQ1JFQVRFIFRSSUdHRVIgSUYgTk9UIEVYSVNUUyBhY2Nlc3NfYXVkaXRfZXZlbnRzX25vX3VwZGF0ZQogICAgICAgICAgICBCRUZPUkUgVVBEQVRFIE9OIGFjY2Vzc19hdWRpdF9ldmVudHMKICAgICAgICAgICAgQkVHSU4KICAgICAgICAgICAgICAgIFNFTEVDVCBSQUlTRShBQk9SVCwgJ2FjY2VzcyBhdWRpdCBldmVudHMgYXJlIGltbXV0YWJsZScpOwogICAgICAgICAgICBFTkQ7CgogICAgICAgICAgICBDUkVBVEUgVFJJR0dFUiBJRiBOT1QgRVhJU1RTIGFjY2Vzc19hdWRpdF9ldmVudHNfbm9fZGVsZXRlCiAgICAgICAgICAgIEJFRk9SRSBERUxFVEUgT04gYWNjZXNzX2F1ZGl0X2V2ZW50cwogICAgICAgICAgICBCRUdJTgogICAgICAgICAgICAgICAgU0VMRUNUIFJBSVNFKEFCT1JULCAnYWNjZXNzIGF1ZGl0IGV2ZW50cyBhcmUgaW1tdXRhYmxlJyk7CiAgICAgICAgICAgIEVORDsKICAgICAgICAgICAgIiIiCiAgICAgICAgKQogICAgICAgIHNlbGYuX2Nvbm5lY3Rpb24uY29tbWl0KCkKCiAgICBkZWYgc2F2ZV9jb21wYW55KHNlbGYsICosIGNvbXBhbnlfaWQ6IHN0ciwgbmFtZTogc3RyLCBhY3RpdmU6IGJvb2wgPSBUcnVlKSAtPiBOb25lOgogICAgICAgIGlmIG5vdCBjb21wYW55X2lkIG9yIG5vdCBuYW1lOgogICAgICAgICAgICByYWlzZSBWYWx1ZUVycm9yKCJjb21wYW55X2lkIGFuZCBuYW1lIGFyZSByZXF1aXJlZCIpCiAgICAgICAgdHJ5OgogICAgICAgICAgICB3aXRoIHNlbGYuX2Nvbm5lY3Rpb246CiAgICAgICAgICAgICAgICBzZWxmLl9jb25uZWN0aW9uLmV4ZWN1dGUoCiAgICAgICAgICAgICAgICAgICAgIklOU0VSVCBJTlRPIGNvbXBhbmllcyhjb21wYW55X2lkLCBuYW1lLCBhY3RpdmUpIFZBTFVFUyAoPywgPywgPykiLAogICAgICAgICAgICAgICAgICAgIChjb21wYW55X2lkLCBuYW1lLCBhY3RpdmUpLAogICAgICAgICAgICAgICAgKQogICAgICAgIGV4Y2VwdCBzcWxpdGUzLkludGVncml0eUVycm9yIGFzIGV4YzoKICAgICAgICAgICAgcmFpc2UgVmFsdWVFcnJvcigiY29tcGFueSBpcyBhbHJlYWR5IHJlZ2lzdGVyZWQiKSBmcm9tIGV4YwoKICAgIGRlZiBzYXZlX3VzZXIoCiAgICAgICAgc2VsZiwKICAgICAgICAqLAogICAgICAgIHVzZXJfaWQ6IHN0ciwKICAgICAgICBlbWFpbDogc3RyIHwgTm9uZSA9IE5vbmUsCiAgICAgICAgYWN0aXZlOiBib29sID0gVHJ1ZSwKICAgICkgLT4gTm9uZToKICAgICAgICBpZiBub3QgdXNlcl9pZDoKICAgICAgICAgICAgcmFpc2UgVmFsdWVFcnJvcigidXNlcl9pZCBpcyByZXF1aXJlZCIpCiAgICAgICAgdHJ5OgogICAgICAgICAgICB3aXRoIHNlbGYuX2Nvbm5lY3Rpb246CiAgICAgICAgICAgICAgICBzZWxmLl9jb25uZWN0aW9uLmV4ZWN1dGUoCiAgICAgICAgICAgICAgICAgICAgIklOU0VSVCBJTlRPIHVzZXJzKHVzZXJfaWQsIGVtYWlsLCBhY3RpdmUpIFZBTFVFUyAoPywgPywgPykiLAogICAgICAgICAgICAgICAgICAgICh1c2VyX2lkLCBlbWFpbCwgYWN0aXZlKSwKICAgICAgICAgICAgICAgICkKICAgICAgICBleGNlcHQgc3FsaXRlMy5JbnRlZ3JpdHlFcnJvciBhcyBleGM6CiAgICAgICAgICAgIHJhaXNlIFZhbHVlRXJyb3IoInVzZXIgaXMgYWxyZWFkeSByZWdpc3RlcmVkIikgZnJvbSBleGMKCiAgICBkZWYgc2F2ZShzZWxmLCBtZW1iZXJzaGlwOiBNZW1iZXJzaGlwUmVjb3JkKSAtPiBOb25lOgogICAgICAgIHRyeToKICAgICAgICAgICAgd2l0aCBzZWxmLl9jb25uZWN0aW9uOgogICAgICAgICAgICAgICAgc2VsZi5fY29ubmVjdGlvbi5leGVjdXRlKAogICAgICAgICAgICAgICAgICAgICIiIgogICAgICAgICAgICAgICAgICAgIElOU0VSVCBJTlRPIG1lbWJlcnNoaXBzKAogICAgICAgICAgICAgICAgICAgICAgICBwcm92aWRlciwgc3ViamVjdCwgdXNlcl9pZCwgY29tcGFueV9pZCwgcm9sZSwgZW1wbG95ZWVfaWQsIGFjdGl2ZQogICAgICAgICAgICAgICAgICAgICkgVkFMVUVTICg/LCA/LCA/LCA/LCA/LCA/LCA/KQogICAgICAgICAgICAgICAgICAgICIiIiwKICAgICAgICAgICAgICAgICAgICAoCiAgICAgICAgICAgICAgICAgICAgICAgIG1lbWJlcnNoaXAucHJvdmlkZXIsCiAgICAgICAgICAgICAgICAgICAgICAgIG1lbWJlcnNoaXAuc3ViamVjdCwKICAgICAgICAgICAgICAgICAgICAgICAgbWVtYmVyc2hpcC51c2VyX2lkLAogICAgICAgICAgICAgICAgICAgICAgICBtZW1iZXJzaGlwLmNvbXBhbnlfaWQsCiAgICAgICAgICAgICAgICAgICAgICAgIG1lbWJlcnNoaXAucm9sZS52YWx1ZSwKICAgICAgICAgICAgICAgICAgICAgICAgbWVtYmVyc2hpcC5lbXBsb3llZV9pZCwKICAgICAgICAgICAgICAgICAgICAgICAgbWVtYmVyc2hpcC5hY3RpdmUsCiAgICAgICAgICAgICAgICAgICAgKSwKICAgICAgICAgICAgICAgICkKICAgICAgICBleGNlcHQgc3FsaXRlMy5JbnRlZ3JpdHlFcnJvciBhcyBleGM6CiAgICAgICAgICAgIG1lc3NhZ2UgPSBzdHIoZXhjKS5sb3dlcigpCiAgICAgICAgICAgIGlmICJ1bmlxdWUiIGluIG1lc3NhZ2U6CiAgICAgICAgICAgICAgICByYWlzZSBWYWx1ZUVycm9yKCJwcm92aWRlciBzdWJqZWN0IGlzIGFscmVhZHkgbWFwcGVkIikgZnJvbSBleGMKICAgICAgICAgICAgcmFpc2UgVmFsdWVFcnJvcigibWVtYmVyc2hpcCByZWZlcmVuY2VzIGFuIHVua25vd24gdXNlciBvciBjb21wYW55IikgZnJvbSBleGMKCiAgICBkZWYgZmluZF9tZW1iZXJzaGlwKAogICAgICAgIHNlbGYsCiAgICAgICAgKiwKICAgICAgICBwcm92aWRlcjogc3RyLAogICAgICAgIHN1YmplY3Q6IHN0ciwKICAgICkgLT4gTWVtYmVyc2hpcFJlY29yZCB8IE5vbmU6CiAgICAgICAgcm93ID0gc2VsZi5fY29ubmVjdGlvbi5leGVjdXRlKAogICAgICAgICAgICAiIiIKICAgICAgICAgICAgU0VMRUNUIG0udXNlcl9pZCwgbS5wcm92aWRlciwgbS5zdWJqZWN0LCBtLmNvbXBhbnlfaWQsIG0ucm9sZSwKICAgICAgICAgICAgICAgICAgIG0uZW1wbG95ZWVfaWQsIG0uYWN0aXZlCiAgICAgICAgICAgIEZST00gbWVtYmVyc2hpcHMgQVMgbQogICAgICAgICAgICBKT0lOIHVzZXJzIEFTIHUgT04gdS51c2VyX2lkID0gbS51c2VyX2lkCiAgICAgICAgICAgIEpPSU4gY29tcGFuaWVzIEFTIGMgT04gYy5jb21wYW55X2lkID0gbS5jb21wYW55X2lkCiAgICAgICAgICAgIFdIRVJFIG0ucHJvdmlkZXIgPSA/IEFORCBtLnN1YmplY3QgPSA/CiAgICAgICAgICAgICAgQU5EIG0uYWN0aXZlID0gMSBBTkQgdS5hY3RpdmUgPSAxIEFORCBjLmFjdGl2ZSA9IDEKICAgICAgICAgICAgIiIiLAogICAgICAgICAgICAocHJvdmlkZXIsIHN1YmplY3QpLAogICAgICAgICkuZmV0Y2hvbmUoKQogICAgICAgIGlmIHJvdyBpcyBOb25lOgogICAgICAgICAgICByZXR1cm4gTm9uZQogICAgICAgIHJldHVybiBNZW1iZXJzaGlwUmVjb3JkKAogICAgICAgICAgICB1c2VyX2lkPXJvd1sidXNlcl9pZCJdLAogICAgICAgICAgICBwcm92aWRlcj1yb3dbInByb3ZpZGVyIl0sCiAgICAgICAgICAgIHN1YmplY3Q9cm93WyJzdWJqZWN0Il0sCiAgICAgICAgICAgIGNvbXBhbnlfaWQ9cm93WyJjb21wYW55X2lkIl0sCiAgICAgICAgICAgIHJvbGU9Um9sZShyb3dbInJvbGUiXSksCiAgICAgICAgICAgIGVtcGxveWVlX2lkPXJvd1siZW1wbG95ZWVfaWQiXSwKICAgICAgICAgICAgYWN0aXZlPWJvb2wocm93WyJhY3RpdmUiXSksCiAgICAgICAgKQoKICAgIGRlZiByZWNvcmQoc2VsZiwgZXZlbnQ6IEFjY2Vzc0F1ZGl0RXZlbnQpIC0+IE5vbmU6CiAgICAgICAgd2l0aCBzZWxmLl9jb25uZWN0aW9uOgogICAgICAgICAgICBzZWxmLl9jb25uZWN0aW9uLmV4ZWN1dGUoCiAgICAgICAgICAgICAgICAiIiIKICAgICAgICAgICAgICAgIElOU0VSVCBJTlRPIGFjY2Vzc19hdWRpdF9ldmVudHMoCiAgICAgICAgICAgICAgICAgICAgb2NjdXJyZWRfYXQsIHVzZXJfaWQsIGNvbXBhbnlfaWQsIGFjdGlvbiwgcmVzb3VyY2VfdHlwZSwKICAgICAgICAgICAgICAgICAgICByZXNvdXJjZV9pZCwgYWxsb3dlZCwgcmVhc29uCiAgICAgICAgICAgICAgICApIFZBTFVFUyAoPywgPywgPywgPywgPywgPywgPywgPykKICAgICAgICAgICAgICAgICIiIiwKICAgICAgICAgICAgICAgICgKICAgICAgICAgICAgICAgICAgICBldmVudC5vY2N1cnJlZF9hdC5pc29mb3JtYXQoKSwKICAgICAgICAgICAgICAgICAgICBldmVudC51c2VyX2lkLAogICAgICAgICAgICAgICAgICAgIGV2ZW50LmNvbXBhbnlfaWQsCiAgICAgICAgICAgICAgICAgICAgZXZlbnQuYWN0aW9uLAogICAgICAgICAgICAgICAgICAgIGV2ZW50LnJlc291cmNlX3R5cGUsCiAgICAgICAgICAgICAgICAgICAgZXZlbnQucmVzb3VyY2VfaWQsCiAgICAgICAgICAgICAgICAgICAgZXZlbnQuYWxsb3dlZCwKICAgICAgICAgICAgICAgICAgICBldmVudC5yZWFzb24sCiAgICAgICAgICAgICAgICApLAogICAgICAgICAgICApCgogICAgZGVmIGxpc3RfYXVkaXRfZXZlbnRzKHNlbGYsICosIGNvbXBhbnlfaWQ6IHN0cikgLT4gbGlzdFtBY2Nlc3NBdWRpdEV2ZW50XToKICAgICAgICByb3dzID0gc2VsZi5fY29ubmVjdGlvbi5leGVjdXRlKAogICAgICAgICAgICAiIiIKICAgICAgICAgICAgU0VMRUNUIG9jY3VycmVkX2F0LCB1c2VyX2lkLCBjb21wYW55X2lkLCBhY3Rpb24sIHJlc291cmNlX3R5cGUsCiAgICAgICAgICAgICAgICAgICByZXNvdXJjZV9pZCwgYWxsb3dlZCwgcmVhc29uCiAgICAgICAgICAgIEZST00gYWNjZXNzX2F1ZGl0X2V2ZW50cwogICAgICAgICAgICBXSEVSRSBjb21wYW55X2lkID0gPwogICAgICAgICAgICBPUkRFUiBCWSBldmVudF9pZAogICAgICAgICAgICAiIiIsCiAgICAgICAgICAgIChjb21wYW55X2lkLCksCiAgICAgICAgKS5mZXRjaGFsbCgpCiAgICAgICAgcmV0dXJuIFsKICAgICAgICAgICAgQWNjZXNzQXVkaXRFdmVudCgKICAgICAgICAgICAgICAgIG9jY3VycmVkX2F0PWRhdGV0aW1lLmZyb21pc29mb3JtYXQocm93WyJvY2N1cnJlZF9hdCJdKSwKICAgICAgICAgICAgICAgIHVzZXJfaWQ9cm93WyJ1c2VyX2lkIl0sCiAgICAgICAgICAgICAgICBjb21wYW55X2lkPXJvd1siY29tcGFueV9pZCJdLAogICAgICAgICAgICAgICAgYWN0aW9uPXJvd1siYWN0aW9uIl0sCiAgICAgICAgICAgICAgICByZXNvdXJjZV90eXBlPXJvd1sicmVzb3VyY2VfdHlwZSJdLAogICAgICAgICAgICAgICAgcmVzb3VyY2VfaWQ9cm93WyJyZXNvdXJjZV9pZCJdLAogICAgICAgICAgICAgICAgYWxsb3dlZD1ib29sKHJvd1siYWxsb3dlZCJdKSwKICAgICAgICAgICAgICAgIHJlYXNvbj1yb3dbInJlYXNvbiJdLAogICAgICAgICAgICApCiAgICAgICAgICAgIGZvciByb3cgaW4gcm93cwogICAgICAgIF0KCiAgICBkZWYgY2xvc2Uoc2VsZikgLT4gTm9uZToKICAgICAgICBzZWxmLl9jb25uZWN0aW9uLmNsb3NlKCkKCiAgICBkZWYgX19lbnRlcl9fKHNlbGYpIC0+ICJTUUxpdGVQbGF0Zm9ybVN0b3JlIjoKICAgICAgICByZXR1cm4gc2VsZgoKICAgIGRlZiBfX2V4aXRfXyhzZWxmLCAqX2FyZ3M6IG9iamVjdCkgLT4gTm9uZToKICAgICAgICBzZWxmLmNsb3NlKCkK
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+
+from tax_engine.platform.audit import AccessAuditEvent
+from tax_engine.platform.identity import MembershipRecord
+from tax_engine.platform.tenancy import Role
+
+
+class SQLitePlatformStore:
+    """SQLite-backed tenant identity directory and authorization audit sink.
+
+    The database owns identity uniqueness and tenant relationships. This adapter
+    is intentionally synchronous because the surrounding service contracts are
+    synchronous; a server deployment can replace it without changing callers.
+    """
+
+    def __init__(self, database: str | Path) -> None:
+        self._connection = sqlite3.connect(str(database))
+        self._connection.row_factory = sqlite3.Row
+        self._connection.execute("PRAGMA foreign_keys = ON")
+        self._connection.execute("PRAGMA busy_timeout = 5000")
+        self._create_schema()
+
+    def _create_schema(self) -> None:
+        self._connection.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS companies (
+                company_id TEXT PRIMARY KEY,
+                name TEXT NOT NULL CHECK (length(name) > 0),
+                active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1))
+            );
+
+            CREATE TABLE IF NOT EXISTS users (
+                user_id TEXT PRIMARY KEY,
+                email TEXT,
+                active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1))
+            );
+
+            CREATE TABLE IF NOT EXISTS memberships (
+                provider TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                user_id TEXT NOT NULL REFERENCES users(user_id),
+                company_id TEXT NOT NULL REFERENCES companies(company_id),
+                role TEXT NOT NULL,
+                employee_id TEXT,
+                active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+                PRIMARY KEY (provider, subject),
+                CHECK (role IN (
+                    'employee', 'hr', 'payroll', 'finance',
+                    'compliance', 'admin', 'leadership'
+                )),
+                CHECK (role != 'employee' OR employee_id IS NOT NULL)
+            );
+
+            CREATE INDEX IF NOT EXISTS memberships_company_id_idx
+                ON memberships(company_id);
+
+            CREATE TABLE IF NOT EXISTS access_audit_events (
+                event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                occurred_at TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                company_id TEXT NOT NULL,
+                action TEXT NOT NULL,
+                resource_type TEXT NOT NULL,
+                resource_id TEXT NOT NULL,
+                allowed INTEGER NOT NULL CHECK (allowed IN (0, 1)),
+                reason TEXT
+            );
+
+            CREATE INDEX IF NOT EXISTS audit_company_time_idx
+                ON access_audit_events(company_id, occurred_at);
+
+            CREATE TRIGGER IF NOT EXISTS access_audit_events_no_update
+            BEFORE UPDATE ON access_audit_events
+            BEGIN
+                SELECT RAISE(ABORT, 'access audit events are immutable');
+            END;
+
+            CREATE TRIGGER IF NOT EXISTS access_audit_events_no_delete
+            BEFORE DELETE ON access_audit_events
+            BEGIN
+                SELECT RAISE(ABORT, 'access audit events are immutable');
+            END;
+            """
+        )
+        self._connection.commit()
+
+    def save_company(self, *, company_id: str, name: str, active: bool = True) -> None:
+        if not company_id or not name:
+            raise ValueError("company_id and name are required")
+        try:
+            with self._connection:
+                self._connection.execute(
+                    "INSERT INTO companies(company_id, name, active) VALUES (?, ?, ?)",
+                    (company_id, name, active),
+                )
+        except sqlite3.IntegrityError as exc:
+            raise ValueError("company is already registered") from exc
+
+    def save_user(
+        self,
+        *,
+        user_id: str,
+        email: str | None = None,
+        active: bool = True,
+    ) -> None:
+        if not user_id:
+            raise ValueError("user_id is required")
+        try:
+            with self._connection:
+                self._connection.execute(
+                    "INSERT INTO users(user_id, email, active) VALUES (?, ?, ?)",
+                    (user_id, email, active),
+                )
+        except sqlite3.IntegrityError as exc:
+            raise ValueError("user is already registered") from exc
+
+    def save(self, membership: MembershipRecord) -> None:
+        try:
+            with self._connection:
+                self._connection.execute(
+                    """
+                    INSERT INTO memberships(
+                        provider, subject, user_id, company_id, role, employee_id, active
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        membership.provider,
+                        membership.subject,
+                        membership.user_id,
+                        membership.company_id,
+                        membership.role.value,
+                        membership.employee_id,
+                        membership.active,
+                    ),
+                )
+        except sqlite3.IntegrityError as exc:
+            message = str(exc).lower()
+            if "unique" in message:
+                raise ValueError("provider subject is already mapped") from exc
+            raise ValueError("membership references an unknown user or company") from exc
+
+    def find_membership(
+        self,
+        *,
+        provider: str,
+        subject: str,
+    ) -> MembershipRecord | None:
+        row = self._connection.execute(
+            """
+            SELECT m.user_id, m.provider, m.subject, m.company_id, m.role,
+                   m.employee_id, m.active
+            FROM memberships AS m
+            JOIN users AS u ON u.user_id = m.user_id
+            JOIN companies AS c ON c.company_id = m.company_id
+            WHERE m.provider = ? AND m.subject = ?
+              AND m.active = 1 AND u.active = 1 AND c.active = 1
+            """,
+            (provider, subject),
+        ).fetchone()
+        if row is None:
+            return None
+        return MembershipRecord(
+            user_id=row["user_id"],
+            provider=row["provider"],
+            subject=row["subject"],
+            company_id=row["company_id"],
+            role=Role(row["role"]),
+            employee_id=row["employee_id"],
+            active=bool(row["active"]),
+        )
+
+    def record(self, event: AccessAuditEvent) -> None:
+        with self._connection:
+            self._connection.execute(
+                """
+                INSERT INTO access_audit_events(
+                    occurred_at, user_id, company_id, action, resource_type,
+                    resource_id, allowed, reason
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event.occurred_at.isoformat(),
+                    event.user_id,
+                    event.company_id,
+                    event.action,
+                    event.resource_type,
+                    event.resource_id,
+                    event.allowed,
+                    event.reason,
+                ),
+            )
+
+    def list_audit_events(self, *, company_id: str) -> list[AccessAuditEvent]:
+        rows = self._connection.execute(
+            """
+            SELECT occurred_at, user_id, company_id, action, resource_type,
+                   resource_id, allowed, reason
+            FROM access_audit_events
+            WHERE company_id = ?
+            ORDER BY event_id
+            """,
+            (company_id,),
+        ).fetchall()
+        return [
+            AccessAuditEvent(
+                occurred_at=datetime.fromisoformat(row["occurred_at"]),
+                user_id=row["user_id"],
+                company_id=row["company_id"],
+                action=row["action"],
+                resource_type=row["resource_type"],
+                resource_id=row["resource_id"],
+                allowed=bool(row["allowed"]),
+                reason=row["reason"],
+            )
+            for row in rows
+        ]
+
+    def close(self) -> None:
+        self._connection.close()
+
+    def __enter__(self) -> "SQLitePlatformStore":
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        self.close()
