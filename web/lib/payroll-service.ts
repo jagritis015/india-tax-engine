@@ -1,3 +1,5 @@
+import { UAT_COMPANY } from "./uat-niva-data";
+
 export type PayrollRunStatus = "draft" | "validation" | "approval" | "finalized";
 
 export type PayrollException = {
@@ -45,34 +47,43 @@ export interface PayrollApplicationService {
 export class RepresentativeUatPayrollService implements PayrollApplicationService {
   async getWorkspaceSnapshot(companyId: string, period: string): Promise<PayrollWorkspaceSnapshot> {
     return {
-      company: { id: companyId, name: "Acme Labs" },
+      company: { id: companyId || UAT_COMPANY.id, name: UAT_COMPANY.name },
       payrollRun: {
         id: `run-${period}`,
         period,
         taxYear: "2026-27",
         status: "validation",
-        employeeCount: 84,
-        grossPayroll: 6842500,
-        netPayable: 5526140,
-        employerCost: 7218940,
+        employeeCount: UAT_COMPANY.employeeCount,
+        grossPayroll: UAT_COMPANY.grossPayroll,
+        netPayable: UAT_COMPANY.netPayable,
+        employerCost: UAT_COMPANY.employerCost,
       },
       exceptions: [
         {
           id: "ex-001",
-          employeeId: "ACM-001",
-          employeeName: "Aarav Mehta",
-          code: "NET_PAY_VARIANCE",
+          employeeId: "NVL-017",
+          employeeName: "Aditi Joshi",
+          code: "PAYROLL_INPUT_REVIEW",
           severity: "high",
-          summary: "Net pay changed by 31%",
+          summary: "Payroll input requires review before approval",
           resolved: false,
         },
         {
           id: "ex-002",
-          employeeId: "ACM-002",
-          employeeName: "Meera Nair",
-          code: "PT_LOCATION_MISSING",
+          employeeId: "NVL-042",
+          employeeName: "Pooja Sharma",
+          code: "PT_LOCATION_REVIEW",
           severity: "blocker",
-          summary: "Professional Tax location missing",
+          summary: "Professional Tax location/rule selection requires review",
+          resolved: false,
+        },
+        {
+          id: "ex-003",
+          employeeId: "NVL-063",
+          employeeName: "Kiran Verma",
+          code: "PAYROLL_INPUT_REVIEW",
+          severity: "medium",
+          summary: "Payroll input requires review before approval",
           resolved: false,
         },
       ],
