@@ -63,6 +63,13 @@ TY_2026_27_RULES = {
         status=VerificationStatus.VERIFIED,
         source_reference="Income-tax Act, 2025, section 123 and Schedule XV; CBDT Interplay and Transition FAQs Q8.10-Q8.11",
     ),
+    "HEALTH_INSURANCE_DEDUCTION": StatutoryRule(
+        rule_id="HEALTH_INSURANCE_DEDUCTION", tax_year="2026-27", legislation="Income-tax Act, 2025",
+        provision="Section 126 read with section 202(2)(a)(xii)",
+        description="Health-insurance, preventive-check-up and qualifying senior-citizen medical expenditure deduction; unavailable under section 202 new regime",
+        status=VerificationStatus.VERIFIED,
+        source_reference="Income-tax Act, 2025 as amended by Finance Act, 2026, sections 126 and 202(2)(a)(xii)",
+    ),
     "HRA_EXEMPTION": StatutoryRule(
         rule_id="HRA_EXEMPTION", tax_year="2026-27", legislation="Income-tax Act, 2025 and Income-tax Rules, 2026",
         provision="Section 11 read with Schedule III Table Sl. No. 11 and Rule 279",
