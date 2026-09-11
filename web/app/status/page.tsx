@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const build = {
-  commit: "3529b3ad",
-  fullCommit: "3529b3ad289b4b02fa44e1b0c145c1b753ba9a19",
+  commit: "f5883be7",
+  fullCommit: "f5883be7b53add7bef8f351e61e0bb7c09d85c23",
   ci: "Passed",
-  ciRun: "#48",
+  ciRun: "#57",
   updated: "11 Sep 2026",
   source: "GitHub main",
 };
@@ -22,28 +22,32 @@ const statutoryCoverage = [
 
 const productReadiness = [
   { label: "Repository CI", value: "Green", detail: "Python 3.11, Python 3.12 and Payroll workspace" },
+  { label: "Niva Labs UAT baseline", value: "Ready", detail: "100 synthetic employees and September 2026 representative payroll baseline are in main" },
   { label: "Statutory salary chain", value: "Gated", detail: "Unsupported or ambiguous inputs fail closed" },
   { label: "Live deployment trace", value: "In progress", detail: "OpenAI Sites project is identified; deployed commit still needs runtime verification" },
-  { label: "Real-company UAT", value: "Not approved", detail: "Use representative data until security and deployment gates are validated" },
+  { label: "Real-company UAT", value: "Not approved", detail: "Use synthetic Niva Labs data until security and deployment gates are validated" },
 ];
 
 export default function StatusPage() {
   return (
     <main style={{ minHeight: "100vh", background: "#f7f8fa", color: "#17202a", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "32px 20px 64px" }}>
-        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 28 }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#687385" }}>India Payroll OS</div>
             <h1 style={{ margin: "6px 0 4px", fontSize: 32 }}>Build, Accuracy & UAT Status</h1>
-            <p style={{ margin: 0, color: "#687385" }}>This page describes the build represented by the repository. Live deployment identity is shown separately until the Sites runtime can prove its deployed commit.</p>
+            <p style={{ margin: 0, color: "#687385" }}>This page identifies the repository build expected in UAT. The live Site is only considered current when this exact commit is visible after publication.</p>
           </div>
-          <Link href="/" style={{ textDecoration: "none", padding: "10px 14px", border: "1px solid #d7dce3", borderRadius: 10, color: "#17202a", fontWeight: 600, background: "white" }}>Back to Payroll OS</Link>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Link href="/uat/employees" style={buttonStyle}>Open Niva Labs UAT</Link>
+            <Link href="/" style={buttonStyle}>Back to Payroll OS</Link>
+          </div>
         </header>
 
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 14, marginBottom: 24 }}>
-          <Card label="Repository commit" value={build.commit} detail={build.source} />
-          <Card label="CI" value={`${build.ci} ${build.ciRun}`} detail="Latest statutory closure regression" />
-          <Card label="Accuracy gate" value="Controlled" detail="Salary-chain statutory gates landed" />
+          <Card label="Expected deployed commit" value={build.commit} detail={build.source} />
+          <Card label="CI" value={`${build.ci} ${build.ciRun}`} detail="Niva Labs UAT integration build" />
+          <Card label="UAT baseline" value="100 employees" detail="Niva Labs India Pvt Ltd" />
           <Card label="Deployment" value="Needs runtime proof" detail="Do not assume GitHub main equals the live site" />
         </section>
 
@@ -53,7 +57,7 @@ export default function StatusPage() {
             {productReadiness.map((item) => (
               <div key={item.label} style={rowStyle}>
                 <div><strong>{item.label}</strong><div style={noteStyle}>{item.detail}</div></div>
-                <span style={badgeStyle(item.value === "Green" || item.value === "Gated")}>{item.value}</span>
+                <span style={badgeStyle(item.value === "Green" || item.value === "Gated" || item.value === "Ready")}>{item.value}</span>
               </div>
             ))}
           </div>
@@ -73,10 +77,10 @@ export default function StatusPage() {
 
         <section style={{ ...panelStyle, border: "1px solid #efc66b", background: "#fffaf0" }}>
           <h2 style={{ ...headingStyle, marginBottom: 8 }}>UAT safety boundary</h2>
-          <p style={{ margin: 0, lineHeight: 1.6 }}>This remains a representative UAT product. Do not upload confidential employer payroll data until tenant isolation, access controls, retention, audit controls and the live deployment identity are explicitly validated. Unsupported statutory inputs must remain visible and fail closed.</p>
+          <p style={{ margin: 0, lineHeight: 1.6 }}>This remains a synthetic founder-UAT product. Do not upload confidential employer payroll data until tenant isolation, access controls, retention, audit controls and the live deployment identity are explicitly validated. Unsupported statutory inputs must remain visible and fail closed.</p>
         </section>
 
-        <footer style={{ marginTop: 24, color: "#7a8493", fontSize: 13 }}>Repository status updated {build.updated}. Full commit: <code>{build.fullCommit}</code></footer>
+        <footer style={{ marginTop: 24, color: "#7a8493", fontSize: 13 }}>Repository status updated {build.updated}. Expected deployed commit: <code>{build.fullCommit}</code></footer>
       </div>
     </main>
   );
@@ -86,6 +90,7 @@ function Card({ label, value, detail }: { label: string; value: string; detail: 
   return <article style={{ ...panelStyle, marginBottom: 0 }}><div style={{ fontSize: 13, color: "#687385", marginBottom: 9 }}>{label}</div><strong style={{ fontSize: 21 }}>{value}</strong><div style={{ ...noteStyle, marginTop: 7 }}>{detail}</div></article>;
 }
 
+const buttonStyle = { textDecoration: "none", padding: "10px 14px", border: "1px solid #d7dce3", borderRadius: 10, color: "#17202a", fontWeight: 600, background: "white" } as const;
 const panelStyle = { background: "white", border: "1px solid #e2e6eb", borderRadius: 14, padding: 20, marginBottom: 18, boxShadow: "0 1px 2px rgba(15,23,42,.03)" } as const;
 const headingStyle = { fontSize: 20, margin: "0 0 16px" } as const;
 const rowStyle = { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, padding: "13px 0", borderBottom: "1px solid #edf0f3" } as const;
