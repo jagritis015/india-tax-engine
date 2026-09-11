@@ -1,7 +1,10 @@
 from datetime import date
 from decimal import Decimal
 
+import pytest
+
 from tax_engine.payroll.employee import EmployeePayrollInput, TaxRegime
+from tax_engine.statutory.catalog import StatutoryRuleUnavailableError
 from tax_engine.tds.taxable_salary import calculate_taxable_salary
 
 
@@ -38,13 +41,13 @@ def test_new_regime_taxable_salary():
     assert result["taxable_salary"] == Decimal("1425000")
 
 
-def test_old_regime_taxable_salary():
+def test_old_regime_taxable_salary_with_verified_schedule_xv_evidence():
     employee = make_employee(
         tax_regime=TaxRegime.OLD,
         regime_declared=True,
         professional_tax_paid=Decimal("2400"),
         deduction_80c=Decimal("150000"),
-        deduction_80d=Decimal("25000"),
+        tax_declaration_evidence_verified=True,
     )
 
     result = calculate_taxable_salary(
@@ -55,8 +58,22 @@ def test_old_regime_taxable_salary():
     assert result["standard_deduction"] == Decimal("50000")
     assert result["professional_tax"] == Decimal("2400")
     assert result["deduction_123"] == Decimal("150000")
-    assert result["deduction_health_insurance"] == Decimal("25000")
-    assert result["taxable_salary"] == Decimal("1272600")
+    assert result["deduction_health_insurance"] == Decimal("0")
+    assert result["taxable_salary"] == Decimal("1297600")
+
+
+def test_old_regime_health_insurance_fails_closed_in_taxable_salary_path():
+    employee = make_employee(
+        tax_regime=TaxRegime.OLD,
+        regime_declared=True,
+        deduction_80d=Decimal("25000"),
+    )
+
+    with pytest.raises(
+        StatutoryRuleUnavailableError,
+        match="health-insurance deduction is not yet backed by a verified statutory rule",
+    ):
+        calculate_taxable_salary(employee, Decimal("1500000"))
 
 
 def test_taxable_salary_cannot_be_negative():
