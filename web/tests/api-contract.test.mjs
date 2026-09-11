@@ -8,7 +8,7 @@ const healthRoute = await readFile(new URL("../app/api/health/route.ts", import.
 
 test("payroll UI contract keeps statutory arithmetic on the server", () => {
   assert.match(service, /statutoryArithmetic: "server-deterministic-only"/);
-  assert.match(service, /performs no statutory monetary calculation/);
+  assert.match(service, /performs no statutory\s+\* monetary calculation/);
 });
 
 test("workspace endpoint exposes an application-service boundary", () => {
