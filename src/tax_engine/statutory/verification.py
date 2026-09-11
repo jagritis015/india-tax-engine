@@ -58,6 +58,8 @@ VERIFIED_RULE_PROVENANCE: dict[str, StatutoryRuleProvenance] = {
     "NEW_REGIME_RATES": StatutoryRuleProvenance("NEW_REGIME_RATES", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Section 202")),
     "OLD_REGIME_RATES": StatutoryRuleProvenance("OLD_REGIME_RATES", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _finance_source("Section 3 read with Part I-B of the First Schedule")),
     "REBATE": StatutoryRuleProvenance("REBATE", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Sections 155 and 156")),
+    "STANDARD_DEDUCTION": StatutoryRuleProvenance("STANDARD_DEDUCTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Section 19(1), Table Sl. No. 2")),
+    "PROFESSIONAL_TAX_SALARY_DEDUCTION": StatutoryRuleProvenance("PROFESSIONAL_TAX_SALARY_DEDUCTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Section 19(1), Table Sl. No. 1 read with section 202(2)(a)(iv)")),
     "SCHEDULE_XV_DEDUCTION": StatutoryRuleProvenance("SCHEDULE_XV_DEDUCTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _schedule_xv_sources()),
     "HRA_EXEMPTION": StatutoryRuleProvenance("HRA_EXEMPTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _hra_sources()),
     "SURCHARGE": StatutoryRuleProvenance("SURCHARGE", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _finance_source("Section 3 read with Part I-B of the First Schedule")),
