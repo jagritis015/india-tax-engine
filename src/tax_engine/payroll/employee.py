@@ -24,8 +24,6 @@ class EmployeePayrollInput(BaseModel):
 
     # Employment information
     sex: Sex | None = None
-
-
     date_of_joining: date
     work_state: str
     tax_regime: TaxRegime | None = None
@@ -50,64 +48,49 @@ class EmployeePayrollInput(BaseModel):
     tds_deducted_ytd: Decimal = Field(default=Decimal("0"), ge=0)
 
     # Previous employer information, if applicable
-    previous_employer_taxable_salary: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-    previous_employer_tds: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
+    previous_employer_taxable_salary: Decimal = Field(default=Decimal("0"), ge=0)
+    previous_employer_tds: Decimal = Field(default=Decimal("0"), ge=0)
 
     # HRA exemption inputs
-    annual_rent_paid: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
+    annual_rent_paid: Decimal = Field(default=Decimal("0"), ge=0)
     hra_location: str | None = None
     da_forms_part_of_retirement_benefits: bool = False
 
     # Employee tax declarations
-    hra_exemption_claimed: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-    professional_tax_paid: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-    deduction_80c: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-    deduction_80d: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-    deduction_nps_employee: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-    deduction_nps_employer: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
+    hra_exemption_claimed: Decimal = Field(default=Decimal("0"), ge=0)
+    professional_tax_paid: Decimal = Field(default=Decimal("0"), ge=0)
+    deduction_80c: Decimal = Field(default=Decimal("0"), ge=0)
+
+    # Legacy aggregate health-insurance input. Non-zero values fail closed in
+    # deduction eligibility; structured Section 126 inputs below are required.
+    deduction_80d: Decimal = Field(default=Decimal("0"), ge=0)
+
+    health_insurance_self_family_premium: Decimal = Field(default=Decimal("0"), ge=0)
+    health_insurance_parents_premium: Decimal = Field(default=Decimal("0"), ge=0)
+    health_preventive_checkup_self_family: Decimal = Field(default=Decimal("0"), ge=0)
+    health_preventive_checkup_parents: Decimal = Field(default=Decimal("0"), ge=0)
+    health_medical_expenditure_self_family: Decimal = Field(default=Decimal("0"), ge=0)
+    health_medical_expenditure_parents: Decimal = Field(default=Decimal("0"), ge=0)
+    health_self_family_has_senior_citizen: bool = False
+    health_parents_have_senior_citizen: bool = False
+    health_insurance_self_family_years_covered: int = Field(default=1, ge=1)
+    health_insurance_parents_years_covered: int = Field(default=1, ge=1)
+    health_insurance_self_family_non_cash_verified: bool = False
+    health_insurance_parents_non_cash_verified: bool = False
+    health_medical_self_family_non_cash_verified: bool = False
+    health_medical_parents_non_cash_verified: bool = False
+    health_insurance_evidence_verified: bool = False
+
+    deduction_nps_employee: Decimal = Field(default=Decimal("0"), ge=0)
+    deduction_nps_employer: Decimal = Field(default=Decimal("0"), ge=0)
 
     # Additional Tax Year income inputs
-    other_income_declared: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-
-    house_property_income_or_loss: Decimal = Field(
-        default=Decimal("0")
-    )
-
-    taxable_perquisites_ytd: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-
-    current_month_taxable_perquisites: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-
-    projected_future_bonus: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
-
-    projected_future_variable_pay: Decimal = Field(
-        default=Decimal("0"), ge=0
-    )
+    other_income_declared: Decimal = Field(default=Decimal("0"), ge=0)
+    house_property_income_or_loss: Decimal = Field(default=Decimal("0"))
+    taxable_perquisites_ytd: Decimal = Field(default=Decimal("0"), ge=0)
+    current_month_taxable_perquisites: Decimal = Field(default=Decimal("0"), ge=0)
+    projected_future_bonus: Decimal = Field(default=Decimal("0"), ge=0)
+    projected_future_variable_pay: Decimal = Field(default=Decimal("0"), ge=0)
 
     # Declaration / evidence controls
     previous_employer_details_verified: bool = False
@@ -118,40 +101,18 @@ class EmployeePayrollInput(BaseModel):
     # PF inputs
     pf_applicable: bool | None = None
     pf_wages: Decimal | None = Field(default=None, ge=0)
-
     prior_epf_member: bool = False
     joining_pf_wages: Decimal | None = Field(default=None, ge=0)
-
     international_worker: bool = False
-
     contribute_on_higher_pf_wages: bool = False
     higher_pf_wage_option_verified: bool = False
-
-    pf_contribution_rate: Decimal = Field(
-        default=Decimal("0.12"), ge=0
-    )
+    pf_contribution_rate: Decimal = Field(default=Decimal("0.12"), ge=0)
 
     # Professional Tax half-year context
-    pt_half_year_salary_or_wages: Decimal | None = Field(
-        default=None,
-        ge=0,
-    )
-
-    pt_days_employed_in_half_year: int | None = Field(
-        default=None,
-        ge=0,
-        le=184,
-    )
-
-    pt_annual_salary_or_wages: Decimal | None = Field(
-        default=None,
-        ge=0,
-    )
-
-    pt_already_deducted_for_half_year: Decimal = Field(
-        default=Decimal("0"),
-        ge=0,
-    )
+    pt_half_year_salary_or_wages: Decimal | None = Field(default=None, ge=0)
+    pt_days_employed_in_half_year: int | None = Field(default=None, ge=0, le=184)
+    pt_annual_salary_or_wages: Decimal | None = Field(default=None, ge=0)
+    pt_already_deducted_for_half_year: Decimal = Field(default=Decimal("0"), ge=0)
 
     # Payroll period
     payroll_month: int = Field(ge=1, le=12)

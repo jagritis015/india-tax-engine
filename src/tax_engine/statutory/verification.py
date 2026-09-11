@@ -6,6 +6,7 @@ from tax_engine.statutory.rule_registry import StatutoryRule, VerificationStatus
 
 
 _INCOME_TAX_ACT_2025_URL = "https://incometaxindia.gov.in/Documents/Act/Income-tax-Act-2025.pdf"
+_INCOME_TAX_ACT_2025_AMENDED_URL = "https://www.incometaxindia.gov.in/documents/d/guest/income_tax_act_2025_as_amended_by_fa_act_2026-pdf"
 _INCOME_TAX_RULES_2026_URL = "https://www.incometaxindia.gov.in/documents/20117/13428530/notification-22-2026%2B1.pdf/4fb75298-2d6d-e61d-bf57-1a7195245db3"
 _FINANCE_ACT_2026_URL = "https://www.incometaxindia.gov.in/documents/d/guest/finance-act-2026-pdf-1"
 _CBDT_INTERPLAY_FAQ_URL = "https://www.incometaxindia.gov.in/documents/81799/11848482/FAQs-on-Interplay-and-Transition.pdf/05f80c1a-073c-a5d7-fb6f-55509242be53"
@@ -15,41 +16,25 @@ def _act_source(reference: str) -> tuple[StatutorySource, ...]:
     return (StatutorySource(authority=SourceAuthority.ACT, title="Income-tax Act, 2025", reference=reference, source_url=_INCOME_TAX_ACT_2025_URL),)
 
 
+def _amended_act_source(reference: str) -> tuple[StatutorySource, ...]:
+    return (StatutorySource(authority=SourceAuthority.ACT, title="Income-tax Act, 2025 as amended by Finance Act, 2026", reference=reference, source_url=_INCOME_TAX_ACT_2025_AMENDED_URL),)
+
+
 def _finance_source(reference: str) -> tuple[StatutorySource, ...]:
     return (StatutorySource(authority=SourceAuthority.ACT, title="Finance Act, 2026", reference=reference, source_url=_FINANCE_ACT_2026_URL),)
 
 
 def _schedule_xv_sources() -> tuple[StatutorySource, ...]:
     return (
-        StatutorySource(
-            authority=SourceAuthority.ACT,
-            title="Income-tax Act, 2025",
-            reference="Section 123 read with Schedule XV",
-            source_url=_INCOME_TAX_ACT_2025_URL,
-        ),
-        StatutorySource(
-            authority=SourceAuthority.OFFICIAL_GUIDANCE,
-            title="CBDT FAQs on Interplay and Transition",
-            reference="Q8.10-Q8.11",
-            source_url=_CBDT_INTERPLAY_FAQ_URL,
-        ),
+        StatutorySource(authority=SourceAuthority.ACT, title="Income-tax Act, 2025", reference="Section 123 read with Schedule XV", source_url=_INCOME_TAX_ACT_2025_URL),
+        StatutorySource(authority=SourceAuthority.OFFICIAL_GUIDANCE, title="CBDT FAQs on Interplay and Transition", reference="Q8.10-Q8.11", source_url=_CBDT_INTERPLAY_FAQ_URL),
     )
 
 
 def _hra_sources() -> tuple[StatutorySource, ...]:
     return (
-        StatutorySource(
-            authority=SourceAuthority.ACT,
-            title="Income-tax Act, 2025",
-            reference="Section 11 read with Schedule III Table Sl. No. 11 and section 202(2)(a)(i)",
-            source_url=_INCOME_TAX_ACT_2025_URL,
-        ),
-        StatutorySource(
-            authority=SourceAuthority.RULES,
-            title="Income-tax Rules, 2026",
-            reference="Rule 279",
-            source_url=_INCOME_TAX_RULES_2026_URL,
-        ),
+        StatutorySource(authority=SourceAuthority.ACT, title="Income-tax Act, 2025", reference="Section 11 read with Schedule III Table Sl. No. 11 and section 202(2)(a)(i)", source_url=_INCOME_TAX_ACT_2025_URL),
+        StatutorySource(authority=SourceAuthority.RULES, title="Income-tax Rules, 2026", reference="Rule 279", source_url=_INCOME_TAX_RULES_2026_URL),
     )
 
 
@@ -61,6 +46,7 @@ VERIFIED_RULE_PROVENANCE: dict[str, StatutoryRuleProvenance] = {
     "STANDARD_DEDUCTION": StatutoryRuleProvenance("STANDARD_DEDUCTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Section 19(1), Table Sl. No. 2")),
     "PROFESSIONAL_TAX_SALARY_DEDUCTION": StatutoryRuleProvenance("PROFESSIONAL_TAX_SALARY_DEDUCTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _act_source("Section 19(1), Table Sl. No. 1 read with section 202(2)(a)(iv)")),
     "SCHEDULE_XV_DEDUCTION": StatutoryRuleProvenance("SCHEDULE_XV_DEDUCTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _schedule_xv_sources()),
+    "HEALTH_INSURANCE_DEDUCTION": StatutoryRuleProvenance("HEALTH_INSURANCE_DEDUCTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), None, _amended_act_source("Section 126 read with section 202(2)(a)(xii)")),
     "HRA_EXEMPTION": StatutoryRuleProvenance("HRA_EXEMPTION", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _hra_sources()),
     "SURCHARGE": StatutoryRuleProvenance("SURCHARGE", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _finance_source("Section 3 read with Part I-B of the First Schedule")),
     "HEALTH_EDUCATION_CESS": StatutoryRuleProvenance("HEALTH_EDUCATION_CESS", "2026-27.1", IncomeTaxAct.ACT_2025, date(2026, 4, 1), date(2027, 3, 31), _finance_source("Health and Education Cess provisions for TY 2026-27")),
@@ -69,7 +55,6 @@ VERIFIED_RULE_PROVENANCE: dict[str, StatutoryRuleProvenance] = {
 
 
 def assert_verified_rule_has_authoritative_evidence(rule: StatutoryRule) -> None:
-    """Fail closed if a registry rule is marked VERIFIED without evidence."""
     if rule.status is not VerificationStatus.VERIFIED:
         return
     provenance = VERIFIED_RULE_PROVENANCE.get(rule.rule_id)

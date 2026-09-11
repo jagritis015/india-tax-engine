@@ -30,10 +30,7 @@ def test_new_regime_taxable_salary():
         deduction_80c=Decimal("150000"),
     )
 
-    result = calculate_taxable_salary(
-        employee,
-        Decimal("1500000"),
-    )
+    result = calculate_taxable_salary(employee, Decimal("1500000"))
 
     assert result["standard_deduction"] == Decimal("75000")
     assert result["professional_tax"] == Decimal("0")
@@ -50,10 +47,7 @@ def test_old_regime_taxable_salary_with_verified_schedule_xv_evidence():
         tax_declaration_evidence_verified=True,
     )
 
-    result = calculate_taxable_salary(
-        employee,
-        Decimal("1500000"),
-    )
+    result = calculate_taxable_salary(employee, Decimal("1500000"))
 
     assert result["standard_deduction"] == Decimal("50000")
     assert result["professional_tax"] == Decimal("2400")
@@ -62,7 +56,7 @@ def test_old_regime_taxable_salary_with_verified_schedule_xv_evidence():
     assert result["taxable_salary"] == Decimal("1297600")
 
 
-def test_old_regime_health_insurance_fails_closed_in_taxable_salary_path():
+def test_legacy_80d_fails_closed_in_taxable_salary_path():
     employee = make_employee(
         tax_regime=TaxRegime.OLD,
         regime_declared=True,
@@ -71,9 +65,27 @@ def test_old_regime_health_insurance_fails_closed_in_taxable_salary_path():
 
     with pytest.raises(
         StatutoryRuleUnavailableError,
-        match="health-insurance deduction is not yet backed by a verified statutory rule",
+        match="legacy aggregate deduction_80d cannot be safely interpreted",
     ):
         calculate_taxable_salary(employee, Decimal("1500000"))
+
+
+def test_structured_section_126_reduces_old_regime_taxable_salary():
+    employee = make_employee(
+        tax_regime=TaxRegime.OLD,
+        regime_declared=True,
+        health_insurance_self_family_premium=Decimal("25000"),
+        health_insurance_parents_premium=Decimal("50000"),
+        health_parents_have_senior_citizen=True,
+        health_insurance_self_family_non_cash_verified=True,
+        health_insurance_parents_non_cash_verified=True,
+        health_insurance_evidence_verified=True,
+    )
+
+    result = calculate_taxable_salary(employee, Decimal("1500000"))
+
+    assert result["deduction_health_insurance"] == Decimal("75000")
+    assert result["taxable_salary"] == Decimal("1375000")
 
 
 def test_taxable_salary_cannot_be_negative():
@@ -83,11 +95,7 @@ def test_taxable_salary_cannot_be_negative():
         professional_tax_paid=Decimal("50000"),
     )
 
-    result = calculate_taxable_salary(
-        employee,
-        Decimal("40000"),
-    )
-
+    result = calculate_taxable_salary(employee, Decimal("40000"))
     assert result["taxable_salary"] == Decimal("0")
 
 
@@ -103,10 +111,7 @@ def test_old_regime_hra_is_deducted_from_salary():
         hra_location="Bengaluru",
     )
 
-    result = calculate_taxable_salary(
-        employee,
-        Decimal("1200000"),
-    )
+    result = calculate_taxable_salary(employee, Decimal("1200000"))
 
     assert result["projected_basic"] == Decimal("600000")
     assert result["projected_hra"] == Decimal("300000")
