@@ -42,6 +42,20 @@ TY_2026_27_RULES = {
         provision="Sections 155 and 156", description="Rebate and applicable marginal relief",
         status=VerificationStatus.VERIFIED, source_reference="Income-tax Act, 2025, sections 155 and 156",
     ),
+    "STANDARD_DEDUCTION": StatutoryRule(
+        rule_id="STANDARD_DEDUCTION", tax_year="2026-27", legislation="Income-tax Act, 2025",
+        provision="Section 19(1), Table Sl. No. 2",
+        description="Salary standard deduction: ₹75,000 under section 202(1), ₹50,000 otherwise, limited to salary",
+        status=VerificationStatus.VERIFIED,
+        source_reference="Income-tax Act, 2025, section 19(1), Table Sl. No. 2",
+    ),
+    "PROFESSIONAL_TAX_SALARY_DEDUCTION": StatutoryRule(
+        rule_id="PROFESSIONAL_TAX_SALARY_DEDUCTION", tax_year="2026-27", legislation="Income-tax Act, 2025",
+        provision="Section 19(1), Table Sl. No. 1 read with section 202(2)(a)(iv)",
+        description="Tax on employment deductible in full outside section 202(1); disallowed under the new regime",
+        status=VerificationStatus.VERIFIED,
+        source_reference="Income-tax Act, 2025, section 19(1), Table Sl. No. 1 and section 202(2)(a)(iv)",
+    ),
     "SCHEDULE_XV_DEDUCTION": StatutoryRule(
         rule_id="SCHEDULE_XV_DEDUCTION", tax_year="2026-27", legislation="Income-tax Act, 2025",
         provision="Section 123 read with Schedule XV",
