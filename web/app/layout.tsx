@@ -20,7 +20,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <a
+          href="/status"
+          aria-label="Open build, accuracy and UAT status"
+          style={{
+            position: "fixed",
+            right: 18,
+            bottom: 18,
+            zIndex: 50,
+            borderRadius: 999,
+            padding: "9px 13px",
+            background: "#17202a",
+            color: "white",
+            textDecoration: "none",
+            fontSize: 12,
+            fontWeight: 700,
+            boxShadow: "0 6px 18px rgba(15,23,42,.18)",
+          }}
+        >
+          Build & UAT status
+        </a>
+      </body>
     </html>
   );
 }
