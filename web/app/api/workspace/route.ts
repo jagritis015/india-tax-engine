@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const companyId = url.searchParams.get("company_id") ?? "acme-labs";
+  const companyId = url.searchParams.get("company_id") ?? "niva-labs-in";
   const period = url.searchParams.get("period") ?? "2026-09";
 
   if (!/^\d{4}-\d{2}$/.test(period)) {
