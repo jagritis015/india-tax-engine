@@ -2,6 +2,10 @@ from decimal import Decimal
 
 from tax_engine.payroll.employee import EmployeePayrollInput, TaxRegime
 from tax_engine.statutory.catalog import StatutoryRuleUnavailableError
+from tax_engine.tds.health_insurance import (
+    HealthInsuranceDeclaration,
+    calculate_health_insurance_deduction,
+)
 from tax_engine.tds.regime_resolver import resolve_tax_regime
 from tax_engine.tds.salary_deductions import (
     calculate_professional_tax_salary_deduction,
@@ -48,12 +52,34 @@ def calculate_eligible_deductions(
     )
     deduction_123 = schedule_xv["allowed_deduction"]
 
-    if regime == TaxRegime.OLD and employee.deduction_80d > ZERO:
+    if employee.deduction_80d > ZERO:
         raise StatutoryRuleUnavailableError(
-            "health-insurance deduction is not yet backed by a verified statutory rule"
+            "legacy aggregate deduction_80d cannot be safely interpreted; use structured Section 126 inputs"
         )
 
-    deduction_health_insurance = ZERO
+    health_declaration = HealthInsuranceDeclaration(
+        self_family_premium=employee.health_insurance_self_family_premium,
+        parents_premium=employee.health_insurance_parents_premium,
+        self_family_preventive_checkup=employee.health_preventive_checkup_self_family,
+        parents_preventive_checkup=employee.health_preventive_checkup_parents,
+        self_family_medical_expenditure=employee.health_medical_expenditure_self_family,
+        parents_medical_expenditure=employee.health_medical_expenditure_parents,
+        self_family_has_senior_citizen=employee.health_self_family_has_senior_citizen,
+        parents_have_senior_citizen=employee.health_parents_have_senior_citizen,
+        self_family_premium_years_covered=employee.health_insurance_self_family_years_covered,
+        parents_premium_years_covered=employee.health_insurance_parents_years_covered,
+        self_family_premium_non_cash_verified=employee.health_insurance_self_family_non_cash_verified,
+        parents_premium_non_cash_verified=employee.health_insurance_parents_non_cash_verified,
+        self_family_medical_non_cash_verified=employee.health_medical_self_family_non_cash_verified,
+        parents_medical_non_cash_verified=employee.health_medical_parents_non_cash_verified,
+        evidence_verified=employee.health_insurance_evidence_verified,
+    )
+    health_insurance = calculate_health_insurance_deduction(
+        declaration=health_declaration,
+        tax_year=employee.tax_year,
+        regime=regime,
+    )
+    deduction_health_insurance = health_insurance["allowed_deduction"]
 
     return {
         "standard_deduction": standard_deduction,
