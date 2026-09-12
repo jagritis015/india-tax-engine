@@ -20,3 +20,12 @@ test("India US mobility page keeps state tax and US monetary tax fail-closed", (
   assert.match(page, /assessSubstantialPresence/);
   assert.match(page, /Mobility Guardian/);
 });
+
+test("India US mobility case links the working mobility workstreams", () => {
+  assert.match(page, /Mobility case workstreams/);
+  assert.match(page, /\/uat\/mobility\/aditi-india-us\/day-ledger/);
+  assert.match(page, /\/uat\/mobility\/aditi-india-us\/compensation/);
+  assert.match(page, /\/uat\/mobility\/aditi-india-us\/hypothetical-tax/);
+  assert.match(page, /Engine not verified/);
+  assert.match(page, /Specialist review/);
+});
