@@ -35,15 +35,34 @@ export default function AditiIndiaUsMobilityPage() {
   const monthlyIndiaGross = 156000;
   const monthlyAssignmentComp = monthlyIndiaGross + housing + mobilityAllowance;
 
+  const workstreams = [
+    { label: "Location & residency", detail: "Evidence-backed day ledger feeding the U.S. substantial-presence assessment.", status: "In review", href: "/uat/mobility/aditi-india-us/day-ledger" },
+    { label: "Compensation", detail: "One global compensation ledger across salary and assignment allowances.", status: "Structured", href: "/uat/mobility/aditi-india-us/compensation" },
+    { label: "India hypothetical tax", detail: "Policy-defined stay-at-home India tax using the deterministic India engine.", status: "Calculable", href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
+    { label: "U.S. actual tax", detail: "Federal, state and local monetary engines remain intentionally fail-closed.", status: "Engine not verified", href: null },
+    { label: "Immigration", detail: "Case evidence and work authorization are required before payroll activation.", status: "Specialist review", href: null },
+    { label: "Social security", detail: "India–U.S. position remains a separate specialist workstream.", status: "Specialist review", href: null },
+  ] as const;
+
   return <main style={{minHeight:"100vh",background:"#f6f8fa",fontFamily:"Inter,ui-sans-serif,system-ui,sans-serif",color:"#18212b"}}>
     <div style={{maxWidth:1180,margin:"0 auto",padding:"28px 18px 64px"}}>
       <header style={{display:"flex",justifyContent:"space-between",gap:16,alignItems:"flex-start",flexWrap:"wrap",marginBottom:22}}>
-        <div><div style={{fontSize:13,color:"#6b7480",marginBottom:6}}>Niva Labs · Global Mobility UAT</div><h1 style={{margin:"0 0 8px",fontSize:32}}>Aditi Joshi · India → United States</h1><p style={{margin:0,color:"#5d6772",maxWidth:760}}>First controlled mobility case. India payroll facts are connected; U.S. residency is assessed through a deterministic day-count engine. Unsupported monetary U.S. tax remains review-required.</p></div>
+        <div><div style={{fontSize:13,color:"#6b7480",marginBottom:6}}>Niva Labs · Global Mobility UAT</div><h1 style={{margin:"0 0 8px",fontSize:32}}>Aditi Joshi · India → United States</h1><p style={{margin:0,color:"#5d6772",maxWidth:760}}>One mobility case connecting assignment facts, location evidence, compensation, hypothetical tax and Guardian risks. Unsupported U.S. monetary tax remains review-required.</p></div>
         <a href="/" style={{textDecoration:"none",color:"inherit",border:"1px solid #cfd6dc",background:"white",padding:"10px 13px",borderRadius:9}}>Back to Payroll OS</a>
       </header>
 
       <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12,marginBottom:18}}>
         {[["Employee","NVL-017 · Aditi Joshi"],["Home","Bengaluru, Karnataka"],["Assignment","24-month long-term"],["Policy","Tax equalization"],["Home payroll","Assessment required"],["Host payroll","Assessment required"]].map(([label,value])=><article key={label} style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:15}}><div style={{fontSize:12,color:"#737d87"}}>{label}</div><strong style={{display:"block",marginTop:5}}>{value}</strong></article>)}
+      </section>
+
+      <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18,marginBottom:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:14}}><div><h2 style={{margin:"0 0 6px"}}>Mobility case workstreams</h2><p style={{margin:0,color:"#66717b"}}>Open each verified workstream from the same case instead of treating mobility as separate calculators.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:"#fff3d8",fontSize:12,fontWeight:700}}>4 open reviews</span></div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:10}}>
+          {workstreams.map(item=>{
+            const content = <><div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}><strong>{item.label}</strong><span style={{fontSize:11,padding:"4px 7px",borderRadius:999,background:item.status==="Calculable"||item.status==="Structured"?"#e9f6ef":"#fff3d8"}}>{item.status}</span></div><p style={{margin:"8px 0 0",fontSize:13,color:"#66717b",lineHeight:1.45}}>{item.detail}</p></>;
+            return item.href ? <a key={item.label} href={item.href} style={{display:"block",padding:14,border:"1px solid #dce2e7",borderRadius:10,textDecoration:"none",color:"inherit",background:"#fbfcfd"}}>{content}</a> : <div key={item.label} style={{padding:14,border:"1px solid #dce2e7",borderRadius:10,background:"#fbfcfd"}}>{content}</div>;
+          })}
+        </div>
       </section>
 
       <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18,marginBottom:18}}>
