@@ -56,14 +56,15 @@ export default function AditiIndiaUsMobilityPage() {
   const monthlyIndiaGross = 156000;
   const monthlyAssignmentComp = monthlyIndiaGross + housing + mobilityAllowance;
 
-  const workstreams = [
-    { id: "location", label: "Location & residency", detail: "Evidence-backed day ledger feeding the U.S. substantial-presence assessment.", status: "REVIEW_REQUIRED", href: "/uat/mobility/aditi-india-us/day-ledger" },
-    { id: "compensation", label: "Compensation", detail: "One global compensation ledger across salary and assignment allowances.", status: "REVIEW_REQUIRED", href: "/uat/mobility/aditi-india-us/compensation" },
-    { id: "india-hypothetical-tax", label: "India hypothetical tax", detail: "Policy-defined stay-at-home India tax using the deterministic India engine.", status: "READY", href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
-    { id: "us-tax", label: "U.S. actual tax", detail: "Engine not verified. Federal, state and local monetary calculations remain intentionally fail-closed.", status: "BLOCKED", href: null },
-    { id: "immigration", label: "Immigration", detail: "Specialist review required. Case evidence and work authorization are required before payroll activation.", status: "REVIEW_REQUIRED", href: null },
-    { id: "social-security", label: "Social security", detail: "Specialist review required. The India–U.S. position remains a separate evidence-backed workstream.", status: "REVIEW_REQUIRED", href: null },
-  ] as const;
+  const workstreamDetails: Record<string, string> = {
+    location: "Evidence-backed day ledger feeding the U.S. substantial-presence assessment.",
+    "host-state": "Authoritative case blocker. A verified U.S. host state is required before state tax scope can be assessed.",
+    compensation: "One global compensation ledger across salary and assignment allowances.",
+    "india-hypothetical-tax": "Policy-defined stay-at-home India tax using the deterministic India engine.",
+    "us-tax": "Engine not verified. Federal, state and local monetary calculations remain intentionally fail-closed.",
+    immigration: "Specialist review required. Case evidence and work authorization are required before payroll activation.",
+    "social-security": "Specialist review required. The India–U.S. position remains a separate evidence-backed workstream.",
+  };
 
   return <main style={{minHeight:"100vh",background:"#f6f8fa",fontFamily:"Inter,ui-sans-serif,system-ui,sans-serif",color:"#18212b"}}>
     <div style={{maxWidth:1180,margin:"0 auto",padding:"28px 18px 64px"}}>
@@ -94,16 +95,13 @@ export default function AditiIndiaUsMobilityPage() {
       </section>
 
       <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18,marginBottom:18}}>
-        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:14}}><div><h2 style={{margin:"0 0 6px"}}>Mobility case workstreams</h2><p style={{margin:0,color:"#66717b"}}>Open each verified workstream from the same case instead of treating mobility as separate calculators.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:"#fff3d8",fontSize:12,fontWeight:700}}>2 blockers · 4 reviews</span></div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:10}}>
-          {workstreams.map(item=>{
-            const live = caseSummary?.workstreams.find((workstream) => workstream.id === item.id);
-            const status = live?.status ?? item.status;
-            const href = live?.href ?? item.href;
-            const content = <><div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}><strong>{item.label}</strong><span style={{fontSize:11,padding:"4px 7px",borderRadius:999,background:status==="READY"?"#e9f6ef":status==="BLOCKED"?"#ffe8e3":"#fff3d8"}}>{status.replaceAll("_"," ")}</span></div><p style={{margin:"8px 0 0",fontSize:13,color:"#66717b",lineHeight:1.45}}>{item.detail}</p></>;
-            return href ? <a key={item.label} href={href} style={{display:"block",padding:14,border:"1px solid #dce2e7",borderRadius:10,textDecoration:"none",color:"inherit",background:"#fbfcfd"}}>{content}</a> : <div key={item.label} style={{padding:14,border:"1px solid #dce2e7",borderRadius:10,background:"#fbfcfd"}}>{content}</div>;
+        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:14}}><div><h2 style={{margin:"0 0 6px"}}>Mobility case workstreams</h2><p style={{margin:0,color:"#66717b"}}>These cards are rendered from the same authoritative case summary that controls readiness and payroll activation.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:"#fff3d8",fontSize:12,fontWeight:700}}>{caseSummary ? `${caseSummary.blockers} blockers · ${caseSummary.openReviews} reviews` : "Loading case state"}</span></div>
+        {caseSummary ? <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:10}}>
+          {caseSummary.workstreams.map(item=>{
+            const content = <><div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}><strong>{item.label}</strong><span style={{fontSize:11,padding:"4px 7px",borderRadius:999,background:item.status==="READY"?"#e9f6ef":item.status==="BLOCKED"?"#ffe8e3":"#fff3d8"}}>{item.status.replaceAll("_"," ")}</span></div><p style={{margin:"8px 0 0",fontSize:13,color:"#66717b",lineHeight:1.45}}>{workstreamDetails[item.id] ?? "Controlled by the unified mobility case state."}</p></>;
+            return item.href ? <a key={item.id} href={item.href} style={{display:"block",padding:14,border:"1px solid #dce2e7",borderRadius:10,textDecoration:"none",color:"inherit",background:"#fbfcfd"}}>{content}</a> : <div key={item.id} style={{padding:14,border:"1px solid #dce2e7",borderRadius:10,background:"#fbfcfd"}}>{content}</div>;
           })}
-        </div>
+        </div> : <div style={{padding:14,border:"1px solid #dce2e7",borderRadius:10,background:"#fbfcfd",color:"#66717b"}}>{caseSummaryError ? "Authoritative workstream state unavailable. Treat payroll activation as blocked." : "Loading authoritative workstreams…"}</div>}
       </section>
 
       <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18,marginBottom:18}}>
