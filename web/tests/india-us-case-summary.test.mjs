@@ -36,8 +36,15 @@ test("case summary aggregates existing mobility workstreams without enabling blo
 
 test("case summary API stays deterministic, no-store and fail-closed", async () => {
   const route = await readFile(new URL("../app/api/mobility/aditi-india-us/summary/route.ts", import.meta.url), "utf8");
+  const page = await readFile(new URL("../app/uat/mobility/aditi-india-us/page.tsx", import.meta.url), "utf8");
 
   assert.match(route, /buildAditiIndiaUsCaseSummary/);
   assert.match(route, /Cache-Control/);
   assert.match(route, /deterministic-fail-closed-uat/);
+  assert.match(page, /\/api\/mobility\/aditi-india-us\/summary/);
+  assert.match(page, /cache: "no-store"/);
+  assert.match(page, /Unified case control/);
+  assert.match(page, /caseSummary\.payrollActivationAllowed/);
+  assert.match(page, /caseSummary\?\.workstreams/);
+  assert.match(page, /Payroll activation remains blocked/);
 });
