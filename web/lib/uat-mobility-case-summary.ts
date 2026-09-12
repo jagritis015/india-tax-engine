@@ -58,6 +58,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
     blockers: readiness.blockedCount,
     workstreams: [
       { id: "location", label: "Location and residency", status: gate("location-evidence"), href: "/uat/mobility/aditi-india-us/day-ledger" },
+      { id: "host-state", label: "US host state", status: gate("host-state"), href: null },
       { id: "compensation", label: "Global compensation", status: gate("compensation-treatment"), href: "/uat/mobility/aditi-india-us/compensation" },
       { id: "india-hypothetical-tax", label: "India hypothetical tax", status: gate("india-hypothetical-tax"), href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
       { id: "us-tax", label: "US monetary tax", status: gate("us-tax-engine"), href: null },
