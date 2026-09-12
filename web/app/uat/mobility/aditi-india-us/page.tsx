@@ -105,27 +105,27 @@ export default function AditiIndiaUsMobilityPage() {
       </section>
 
       <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18,marginBottom:18}}>
-        <h2 style={{marginTop:0}}>Assignment facts</h2>
+        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:12}}><div><h2 style={{margin:"0 0 6px"}}>Assignment facts scenario sandbox</h2><p style={{margin:0,color:"#66717b",maxWidth:780}}>Editable values below are for scenario exploration only. They do not update the authoritative mobility case, readiness gates, payroll activation, or verified case evidence.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:"#eef2f5",fontSize:12,fontWeight:700}}>Non-authoritative</span></div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
-          <label><small>U.S. host state</small><input value={hostState} onChange={e=>setHostState(e.target.value)} placeholder="Required, e.g. California" style={input}/></label>
-          <label><small>Monthly housing allowance (INR)</small><input type="number" min="0" value={housing} onChange={e=>setHousing(Number(e.target.value))} style={input}/></label>
-          <label><small>Monthly mobility allowance (INR)</small><input type="number" min="0" value={mobilityAllowance} onChange={e=>setMobilityAllowance(Number(e.target.value))} style={input}/></label>
+          <label><small>Scenario U.S. host state</small><input value={hostState} onChange={e=>setHostState(e.target.value)} placeholder="Scenario only, e.g. California" style={input}/></label>
+          <label><small>Scenario monthly housing allowance (INR)</small><input type="number" min="0" value={housing} onChange={e=>setHousing(Number(e.target.value))} style={input}/></label>
+          <label><small>Scenario monthly mobility allowance (INR)</small><input type="number" min="0" value={mobilityAllowance} onChange={e=>setMobilityAllowance(Number(e.target.value))} style={input}/></label>
         </div>
-        <div style={{marginTop:14,padding:14,background:"#f8fafb",borderRadius:9}}><strong>Compensation view</strong><div style={{marginTop:6,color:"#5f6872"}}>India monthly gross {cash.format(monthlyIndiaGross)} + assignment allowances = <strong>{cash.format(monthlyAssignmentComp)}</strong>. Tax treatment by jurisdiction is not assumed.</div></div>
+        <div style={{marginTop:14,padding:14,background:"#f8fafb",borderRadius:9}}><strong>Scenario compensation view</strong><div style={{marginTop:6,color:"#5f6872"}}>India monthly gross {cash.format(monthlyIndiaGross)} + scenario assignment allowances = <strong>{cash.format(monthlyAssignmentComp)}</strong>. This does not alter authoritative compensation or assume tax treatment by jurisdiction.</div></div>
       </section>
 
       <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18,marginBottom:18}}>
-        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}><div><h2 style={{margin:"0 0 6px"}}>U.S. substantial presence test</h2><p style={{margin:0,color:"#66717b",maxWidth:760}}>Enter verified physical-presence days. The engine applies all counted current-year days + 1/3 prior-year days + 1/6 second-prior-year days, together with the 31-day current-year requirement.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:spt.status==="MEETS_SPT"?"#fff3d8":"#e9f6ef",fontSize:12,fontWeight:700}}>{spt.status.replaceAll("_"," ")}</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}><div><h2 style={{margin:"0 0 6px"}}>U.S. substantial presence scenario sandbox</h2><p style={{margin:0,color:"#66717b",maxWidth:760}}>Enter scenario physical-presence days to exercise the deterministic SPT rule. These inputs do not replace the evidence-backed day ledger or authoritative case SPT status.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:spt.status==="MEETS_SPT"?"#fff3d8":"#e9f6ef",fontSize:12,fontWeight:700}}>Scenario: {spt.status.replaceAll("_"," ")}</span></div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12,marginTop:14}}>
-          <label><small>Current-year days</small><input type="number" min="0" max="366" value={currentDays} onChange={e=>setCurrentDays(Number(e.target.value))} style={input}/></label>
-          <label><small>Prior-year days</small><input type="number" min="0" max="366" value={priorDays} onChange={e=>setPriorDays(Number(e.target.value))} style={input}/></label>
-          <label><small>Second-prior-year days</small><input type="number" min="0" max="366" value={secondPriorDays} onChange={e=>setSecondPriorDays(Number(e.target.value))} style={input}/></label>
-          <label><small>Excluded current-year days</small><input type="number" min="0" max="366" value={excludedDays} onChange={e=>setExcludedDays(Number(e.target.value))} style={input}/></label>
+          <label><small>Scenario current-year days</small><input type="number" min="0" max="366" value={currentDays} onChange={e=>setCurrentDays(Number(e.target.value))} style={input}/></label>
+          <label><small>Scenario prior-year days</small><input type="number" min="0" max="366" value={priorDays} onChange={e=>setPriorDays(Number(e.target.value))} style={input}/></label>
+          <label><small>Scenario second-prior-year days</small><input type="number" min="0" max="366" value={secondPriorDays} onChange={e=>setSecondPriorDays(Number(e.target.value))} style={input}/></label>
+          <label><small>Scenario excluded current-year days</small><input type="number" min="0" max="366" value={excludedDays} onChange={e=>setExcludedDays(Number(e.target.value))} style={input}/></label>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:10,marginTop:14}}>
           {[["Counted current year",String(spt.currentYearCountedDays)],["Weighted 3-year days",String(spt.weightedDays)],["31-day test",spt.currentYear31DayTest?"Pass":"Not met"],["183 weighted-day test",spt.threeYear183DayTest?"Pass":"Not met"],["Rule version",spt.ruleVersion]].map(([label,value])=><div key={label} style={{padding:12,border:"1px solid #e1e6ea",borderRadius:9}}><small style={{color:"#717b85"}}>{label}</small><strong style={{display:"block",marginTop:4}}>{value}</strong></div>)}
         </div>
-        <p style={{fontSize:12,color:"#737d87",marginBottom:0}}>This result is a federal tax-residency fact assessment only. Closer-connection, treaty, green-card and other legal/tax positions remain separate review objects.</p>
+        <p style={{fontSize:12,color:"#737d87",marginBottom:0}}>This scenario result is a federal tax-residency fact assessment only. It does not update the authoritative case. Closer-connection, treaty, green-card and other legal/tax positions remain separate review objects.</p>
       </section>
 
       <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18}}>
