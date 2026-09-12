@@ -36,6 +36,7 @@ export default function AditiIndiaUsMobilityPage() {
   const monthlyAssignmentComp = monthlyIndiaGross + housing + mobilityAllowance;
 
   const workstreams = [
+    { label: "Assignment readiness", detail: "Evidence-backed activation gates across mobility tax, payroll, immigration and social security.", status: "Blocked", href: "/uat/mobility/aditi-india-us/readiness" },
     { label: "Location & residency", detail: "Evidence-backed day ledger feeding the U.S. substantial-presence assessment.", status: "In review", href: "/uat/mobility/aditi-india-us/day-ledger" },
     { label: "Compensation", detail: "One global compensation ledger across salary and assignment allowances.", status: "Structured", href: "/uat/mobility/aditi-india-us/compensation" },
     { label: "India hypothetical tax", detail: "Policy-defined stay-at-home India tax using the deterministic India engine.", status: "Calculable", href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
@@ -56,7 +57,7 @@ export default function AditiIndiaUsMobilityPage() {
       </section>
 
       <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18,marginBottom:18}}>
-        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:14}}><div><h2 style={{margin:"0 0 6px"}}>Mobility case workstreams</h2><p style={{margin:0,color:"#66717b"}}>Open each verified workstream from the same case instead of treating mobility as separate calculators.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:"#fff3d8",fontSize:12,fontWeight:700}}>4 open reviews</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:14}}><div><h2 style={{margin:"0 0 6px"}}>Mobility case workstreams</h2><p style={{margin:0,color:"#66717b"}}>Open each verified workstream from the same case instead of treating mobility as separate calculators.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:"#fff3d8",fontSize:12,fontWeight:700}}>2 blockers · 4 reviews</span></div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:10}}>
           {workstreams.map(item=>{
             const content = <><div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}><strong>{item.label}</strong><span style={{fontSize:11,padding:"4px 7px",borderRadius:999,background:item.status==="Calculable"||item.status==="Structured"?"#e9f6ef":"#fff3d8"}}>{item.status}</span></div><p style={{margin:"8px 0 0",fontSize:13,color:"#66717b",lineHeight:1.45}}>{item.detail}</p></>;
