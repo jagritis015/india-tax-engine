@@ -34,3 +34,12 @@ test("India US mobility case renders authoritative unified workstreams", () => {
   assert.match(page, /Engine not verified/);
   assert.match(page, /Specialist review/);
 });
+
+test("editable mobility controls are clearly separated from authoritative case state", () => {
+  assert.match(page, /Assignment facts scenario sandbox/);
+  assert.match(page, /U\.S\. substantial presence scenario sandbox/);
+  assert.match(page, /Non-authoritative/);
+  assert.match(page, /do not update the authoritative mobility case/);
+  assert.match(page, /do not replace the evidence-backed day ledger or authoritative case SPT status/);
+  assert.match(page, /does not update the authoritative case/);
+});
