@@ -47,4 +47,7 @@ test("readiness API and pages expose the controlled mobility workflow", async ()
   assert.match(casePage, /\/uat\/mobility\/aditi-india-us\/readiness/);
   assert.match(homePage, /Global mobility/);
   assert.match(homePage, /Open mobility case/);
+  assert.match(homePage, /New in UAT/);
+  assert.match(homePage, /Aditi Joshi · Assignment readiness/);
+  assert.match(homePage, /Open readiness control/);
 });
