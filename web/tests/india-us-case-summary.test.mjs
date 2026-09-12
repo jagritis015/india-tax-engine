@@ -46,6 +46,6 @@ test("case summary API stays deterministic, no-store and fail-closed", async () 
   assert.match(page, /cache: "no-store"/);
   assert.match(page, /Unified case control/);
   assert.match(page, /caseSummary\.payrollActivationAllowed/);
-  assert.match(page, /caseSummary\?\.workstreams/);
+  assert.match(page, /caseSummary\.workstreams\.map/);
   assert.match(page, /Payroll activation remains blocked/);
 });
