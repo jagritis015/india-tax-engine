@@ -30,7 +30,8 @@ test("case summary aggregates existing mobility workstreams without enabling blo
   assert.equal(summary.unresolvedCompensationItems, 2);
   assert.equal(summary.openReviews, 4);
   assert.equal(summary.blockers, 2);
-  assert.equal(summary.workstreams.length, 6);
+  assert.equal(summary.workstreams.length, 7);
+  assert.equal(summary.workstreams.find((item) => item.id === "host-state")?.status, "BLOCKED");
   assert.equal(summary.workstreams.find((item) => item.id === "us-tax")?.status, "BLOCKED");
 });
 
