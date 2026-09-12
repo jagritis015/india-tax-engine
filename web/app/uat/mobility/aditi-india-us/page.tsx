@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { MobilityCaseSummary } from "../../../../lib/uat-mobility-case-summary";
 import { assessSubstantialPresence } from "../../../../lib/us-substantial-presence";
 
 const cash = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 
 export default function AditiIndiaUsMobilityPage() {
+  const [caseSummary, setCaseSummary] = useState<MobilityCaseSummary | null>(null);
+  const [caseSummaryError, setCaseSummaryError] = useState(false);
   const [hostState, setHostState] = useState("");
   const [currentDays, setCurrentDays] = useState(120);
   const [priorDays, setPriorDays] = useState(30);
@@ -13,6 +16,24 @@ export default function AditiIndiaUsMobilityPage() {
   const [excludedDays, setExcludedDays] = useState(0);
   const [housing, setHousing] = useState(250000);
   const [mobilityAllowance, setMobilityAllowance] = useState(100000);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/mobility/aditi-india-us/summary", { cache: "no-store", signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("Mobility case summary unavailable");
+        return response.json() as Promise<MobilityCaseSummary>;
+      })
+      .then((summary) => {
+        setCaseSummary(summary);
+        setCaseSummaryError(false);
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setCaseSummaryError(true);
+      });
+    return () => controller.abort();
+  }, []);
 
   const spt = useMemo(() => assessSubstantialPresence({
     currentYearDays: currentDays,
@@ -36,13 +57,12 @@ export default function AditiIndiaUsMobilityPage() {
   const monthlyAssignmentComp = monthlyIndiaGross + housing + mobilityAllowance;
 
   const workstreams = [
-    { label: "Assignment readiness", detail: "Evidence-backed activation gates across mobility tax, payroll, immigration and social security.", status: "Blocked", href: "/uat/mobility/aditi-india-us/readiness" },
-    { label: "Location & residency", detail: "Evidence-backed day ledger feeding the U.S. substantial-presence assessment.", status: "In review", href: "/uat/mobility/aditi-india-us/day-ledger" },
-    { label: "Compensation", detail: "One global compensation ledger across salary and assignment allowances.", status: "Structured", href: "/uat/mobility/aditi-india-us/compensation" },
-    { label: "India hypothetical tax", detail: "Policy-defined stay-at-home India tax using the deterministic India engine.", status: "Calculable", href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
-    { label: "U.S. actual tax", detail: "Federal, state and local monetary engines remain intentionally fail-closed.", status: "Engine not verified", href: null },
-    { label: "Immigration", detail: "Case evidence and work authorization are required before payroll activation.", status: "Specialist review", href: null },
-    { label: "Social security", detail: "India–U.S. position remains a separate specialist workstream.", status: "Specialist review", href: null },
+    { id: "location", label: "Location & residency", detail: "Evidence-backed day ledger feeding the U.S. substantial-presence assessment.", status: "REVIEW_REQUIRED", href: "/uat/mobility/aditi-india-us/day-ledger" },
+    { id: "compensation", label: "Compensation", detail: "One global compensation ledger across salary and assignment allowances.", status: "REVIEW_REQUIRED", href: "/uat/mobility/aditi-india-us/compensation" },
+    { id: "india-hypothetical-tax", label: "India hypothetical tax", detail: "Policy-defined stay-at-home India tax using the deterministic India engine.", status: "READY", href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
+    { id: "us-tax", label: "U.S. actual tax", detail: "Engine not verified. Federal, state and local monetary calculations remain intentionally fail-closed.", status: "BLOCKED", href: null },
+    { id: "immigration", label: "Immigration", detail: "Specialist review required. Case evidence and work authorization are required before payroll activation.", status: "REVIEW_REQUIRED", href: null },
+    { id: "social-security", label: "Social security", detail: "Specialist review required. The India–U.S. position remains a separate evidence-backed workstream.", status: "REVIEW_REQUIRED", href: null },
   ] as const;
 
   return <main style={{minHeight:"100vh",background:"#f6f8fa",fontFamily:"Inter,ui-sans-serif,system-ui,sans-serif",color:"#18212b"}}>
@@ -52,6 +72,23 @@ export default function AditiIndiaUsMobilityPage() {
         <a href="/" style={{textDecoration:"none",color:"inherit",border:"1px solid #cfd6dc",background:"white",padding:"10px 13px",borderRadius:9}}>Back to Payroll OS</a>
       </header>
 
+      <section style={{background:"linear-gradient(135deg,#173b32,#0b6b52)",color:"white",borderRadius:14,padding:20,marginBottom:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:14,alignItems:"flex-start",flexWrap:"wrap"}}>
+          <div><div style={{fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"#c2d8d1",fontWeight:800}}>Unified case control</div><h2 style={{margin:"6px 0 7px"}}>{caseSummary?.caseId ?? "MOB-NVL-017-IND-US"}</h2><p style={{margin:0,color:"#c9d9d4",maxWidth:720}}>One server-controlled case state now drives readiness, evidence, compensation and India hypothetical-tax status.</p></div>
+          <a href="/uat/mobility/aditi-india-us/readiness" style={{textDecoration:"none",background:"#d8f65a",color:"#17312a",padding:"10px 13px",borderRadius:9,fontWeight:800}}>Review activation gates</a>
+        </div>
+        {caseSummaryError&&<div style={{marginTop:16,padding:12,border:"1px solid #ffb4a7",background:"#7a291f",borderRadius:9}}>Case state could not be loaded. Payroll activation remains blocked and no monetary assumption has been made.</div>}
+        {!caseSummary&&!caseSummaryError&&<div style={{marginTop:16,color:"#c9d9d4"}}>Loading deterministic case state…</div>}
+        {caseSummary&&<><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:10,marginTop:16}}>
+          {[
+            ["Overall status",caseSummary.overallStatus.replaceAll("_"," ")],
+            ["Payroll activation",caseSummary.payrollActivationAllowed?"Allowed":"Blocked"],
+            ["Assignment compensation",cash.format(caseSummary.monthlyAssignmentCompInr)],
+            ["India hypothetical withholding",caseSummary.hypotheticalMonthlyWithholdingInr==null?"Review required":cash.format(caseSummary.hypotheticalMonthlyWithholdingInr)],
+          ].map(([label,value])=><div key={label} style={{padding:12,border:"1px solid #ffffff24",background:"#ffffff0d",borderRadius:10}}><small style={{display:"block",color:"#bcd0ca"}}>{label}</small><strong style={{display:"block",marginTop:5}}>{value}</strong></div>)}
+        </div><div style={{display:"flex",gap:"8px 20px",flexWrap:"wrap",marginTop:14,fontSize:12,color:"#d7e5e0"}}><span><strong>{caseSummary.pendingDayEvidence}</strong> pending day evidence</span><span><strong>{caseSummary.unresolvedCompensationItems}</strong> compensation reviews</span><span>SPT: <strong>{caseSummary.substantialPresenceStatus.replaceAll("_"," ")}</strong></span><span><strong>{caseSummary.blockers}</strong> blockers · <strong>{caseSummary.openReviews}</strong> reviews</span></div></>}
+      </section>
+
       <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12,marginBottom:18}}>
         {[["Employee","NVL-017 · Aditi Joshi"],["Home","Bengaluru, Karnataka"],["Assignment","24-month long-term"],["Policy","Tax equalization"],["Home payroll","Assessment required"],["Host payroll","Assessment required"]].map(([label,value])=><article key={label} style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:15}}><div style={{fontSize:12,color:"#737d87"}}>{label}</div><strong style={{display:"block",marginTop:5}}>{value}</strong></article>)}
       </section>
@@ -60,8 +97,11 @@ export default function AditiIndiaUsMobilityPage() {
         <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:14}}><div><h2 style={{margin:"0 0 6px"}}>Mobility case workstreams</h2><p style={{margin:0,color:"#66717b"}}>Open each verified workstream from the same case instead of treating mobility as separate calculators.</p></div><span style={{padding:"6px 9px",borderRadius:999,background:"#fff3d8",fontSize:12,fontWeight:700}}>2 blockers · 4 reviews</span></div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:10}}>
           {workstreams.map(item=>{
-            const content = <><div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}><strong>{item.label}</strong><span style={{fontSize:11,padding:"4px 7px",borderRadius:999,background:item.status==="Calculable"||item.status==="Structured"?"#e9f6ef":"#fff3d8"}}>{item.status}</span></div><p style={{margin:"8px 0 0",fontSize:13,color:"#66717b",lineHeight:1.45}}>{item.detail}</p></>;
-            return item.href ? <a key={item.label} href={item.href} style={{display:"block",padding:14,border:"1px solid #dce2e7",borderRadius:10,textDecoration:"none",color:"inherit",background:"#fbfcfd"}}>{content}</a> : <div key={item.label} style={{padding:14,border:"1px solid #dce2e7",borderRadius:10,background:"#fbfcfd"}}>{content}</div>;
+            const live = caseSummary?.workstreams.find((workstream) => workstream.id === item.id);
+            const status = live?.status ?? item.status;
+            const href = live?.href ?? item.href;
+            const content = <><div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}><strong>{item.label}</strong><span style={{fontSize:11,padding:"4px 7px",borderRadius:999,background:status==="READY"?"#e9f6ef":status==="BLOCKED"?"#ffe8e3":"#fff3d8"}}>{status.replaceAll("_"," ")}</span></div><p style={{margin:"8px 0 0",fontSize:13,color:"#66717b",lineHeight:1.45}}>{item.detail}</p></>;
+            return href ? <a key={item.label} href={href} style={{display:"block",padding:14,border:"1px solid #dce2e7",borderRadius:10,textDecoration:"none",color:"inherit",background:"#fbfcfd"}}>{content}</a> : <div key={item.label} style={{padding:14,border:"1px solid #dce2e7",borderRadius:10,background:"#fbfcfd"}}>{content}</div>;
           })}
         </div>
       </section>
