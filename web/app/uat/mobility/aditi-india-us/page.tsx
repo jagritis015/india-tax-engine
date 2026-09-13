@@ -105,6 +105,13 @@ export default function AditiIndiaUsMobilityPage() {
         <div style={{marginTop:12,padding:12,borderRadius:9,background:"#f8fafb",color:"#5f6872",fontSize:13}}>Authoritative SPT: <strong>{caseSummary.substantialPresenceStatus.replaceAll("_"," ")}</strong> · Rule <strong>{caseSummary.dayEvidenceProvenance.substantialPresenceRuleVersion}</strong> · Source <strong>{caseSummary.dayEvidenceProvenance.source.replaceAll("-"," ")}</strong></div>
       </section>}
 
+      {caseSummary&&<section style={{background:"#fffaf0",border:"1px solid #eadfc6",borderRadius:12,padding:18,marginBottom:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap"}}>
+          <div style={{maxWidth:820}}><div style={{fontSize:11,textTransform:"uppercase",letterSpacing:".08em",fontWeight:800,color:"#8a5a00"}}>Authoritative action required</div><h2 style={{margin:"6px 0"}}>U.S. host-state evidence is incomplete</h2><p style={{margin:"0 0 10px",color:"#66552f"}}>{caseSummary.hostStateEvidence.blockingReason}</p><p style={{margin:0,color:"#66552f"}}><strong>Next safe action:</strong> {caseSummary.hostStateEvidence.nextAction}</p><p style={{margin:"10px 0 0",fontSize:12,color:"#76694d"}}>Evidence progress: <strong>{caseSummary.hostStateEvidence.verifiedEvidenceItems} of {caseSummary.hostStateEvidence.totalEvidenceItems}</strong> verified · State-tax assessment: <strong>{caseSummary.hostStateEvidence.stateTaxAssessmentAllowed?"Allowed":"Blocked"}</strong></p></div>
+          <a href={caseSummary.hostStateEvidence.evidenceHref} style={{textDecoration:"none",border:"1px solid #c8a767",background:"white",padding:"9px 12px",borderRadius:8,color:"inherit",fontWeight:800}}>Review host-state evidence</a>
+        </div>
+      </section>}
+
       <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12,marginBottom:18}}>
         {[["Employee","NVL-017 · Aditi Joshi"],["Home","Bengaluru, Karnataka"],["Assignment","24-month long-term"],["Policy","Tax equalization"],["Home payroll","Assessment required"],["Host payroll","Assessment required"]].map(([label,value])=><article key={label} style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:15}}><div style={{fontSize:12,color:"#737d87"}}>{label}</div><strong style={{display:"block",marginTop:5}}>{value}</strong></article>)}
       </section>
