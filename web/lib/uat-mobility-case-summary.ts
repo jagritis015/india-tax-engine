@@ -25,6 +25,14 @@ export type MobilityCaseSummary = {
     secondPriorYearPhysicalDays: number;
     substantialPresenceRuleVersion: string;
   };
+  hostStateEvidence: {
+    status: "UNVERIFIED";
+    source: "assignment-profile";
+    evidenceHref: "/uat/mobility/aditi-india-us/host-state";
+    requiredEvidence: string[];
+    authoritativeState: null;
+    stateTaxAssessmentAllowed: false;
+  };
   unresolvedCompensationItems: number;
   substantialPresenceStatus: string;
   openReviews: number;
@@ -45,6 +53,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
   const verifiedDayEvidence = ADITI_DAY_LEDGER.filter((entry) => entry.evidenceStatus === "verified").length;
   const firstPendingDayEvidenceId = ADITI_DAY_LEDGER.find((entry) => entry.evidenceStatus === "pending")?.id;
   const dayLedgerHref = `/uat/mobility/aditi-india-us/day-ledger${firstPendingDayEvidenceId ? `#evidence-${firstPendingDayEvidenceId}` : ""}`;
+  const hostStateEvidenceHref = "/uat/mobility/aditi-india-us/host-state" as const;
   const hypotheticalTax = calculateIndiaHypotheticalTax({
     employeeId: "NVL-017",
     employeeName: "Aditi Joshi",
@@ -77,13 +86,25 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       secondPriorYearPhysicalDays: dayLedger.second.physical,
       substantialPresenceRuleVersion: dayLedger.spt.ruleVersion,
     },
+    hostStateEvidence: {
+      status: "UNVERIFIED",
+      source: "assignment-profile",
+      evidenceHref: hostStateEvidenceHref,
+      requiredEvidence: [
+        "Signed assignment letter or amendment naming the primary US work location",
+        "Employer-confirmed primary worksite address",
+        "Corroborating payroll or HR assignment profile",
+      ],
+      authoritativeState: null,
+      stateTaxAssessmentAllowed: false,
+    },
     unresolvedCompensationItems: compensation.unresolved,
     substantialPresenceStatus: dayLedger.spt.status,
     openReviews: readiness.reviewCount,
     blockers: readiness.blockedCount,
     workstreams: [
       { id: "location", label: "Location and residency", status: gate("location-evidence"), href: dayLedgerHref },
-      { id: "host-state", label: "US host state", status: gate("host-state"), href: null },
+      { id: "host-state", label: "US host state", status: gate("host-state"), href: hostStateEvidenceHref },
       { id: "compensation", label: "Global compensation", status: gate("compensation-treatment"), href: "/uat/mobility/aditi-india-us/compensation" },
       { id: "india-hypothetical-tax", label: "India hypothetical tax", status: gate("india-hypothetical-tax"), href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
       { id: "us-tax", label: "US monetary tax", status: gate("us-tax-engine"), href: null },
