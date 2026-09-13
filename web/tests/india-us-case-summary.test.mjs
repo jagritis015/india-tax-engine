@@ -40,7 +40,8 @@ test("case summary exposes evidence-backed SPT provenance from the authoritative
   const summary = buildAditiIndiaUsCaseSummary();
 
   assert.equal(summary.dayEvidenceProvenance.source, "auditable-day-ledger");
-  assert.equal(summary.dayEvidenceProvenance.ledgerHref, "/uat/mobility/aditi-india-us/day-ledger");
+  assert.equal(summary.dayEvidenceProvenance.ledgerHref, "/uat/mobility/aditi-india-us/day-ledger#evidence-d3");
+  assert.equal(summary.workstreams.find((item) => item.id === "location")?.href, summary.dayEvidenceProvenance.ledgerHref);
   assert.equal(summary.dayEvidenceProvenance.totalEntries, 5);
   assert.equal(summary.dayEvidenceProvenance.verifiedEntries, 4);
   assert.equal(summary.dayEvidenceProvenance.pendingEntries, summary.pendingDayEvidence);
@@ -54,6 +55,7 @@ test("case summary exposes evidence-backed SPT provenance from the authoritative
 test("case summary API stays deterministic, no-store and fail-closed", async () => {
   const route = await readFile(new URL("../app/api/mobility/aditi-india-us/summary/route.ts", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/uat/mobility/aditi-india-us/page.tsx", import.meta.url), "utf8");
+  const ledgerPage = await readFile(new URL("../app/uat/mobility/aditi-india-us/day-ledger/page.tsx", import.meta.url), "utf8");
 
   assert.match(route, /buildAditiIndiaUsCaseSummary/);
   assert.match(route, /Cache-Control/);
@@ -70,4 +72,7 @@ test("case summary API stays deterministic, no-store and fail-closed", async () 
   assert.match(page, /caseSummary\.dayEvidenceProvenance\.pendingEntries/);
   assert.match(page, /caseSummary\.dayEvidenceProvenance\.substantialPresenceRuleVersion/);
   assert.match(page, /Scenario inputs below cannot change it/);
+  assert.match(ledgerPage, /id={`evidence-\${item\.id}`}/);
+  assert.match(ledgerPage, /item\.evidenceStatus==="pending"/);
+  assert.match(ledgerPage, /jump directly to the first unresolved evidence record/);
 });
