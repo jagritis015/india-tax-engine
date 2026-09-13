@@ -65,6 +65,10 @@ test("host-state blocker exposes an authoritative evidence checklist without inf
   assert.equal(summary.hostStateEvidence.totalEvidenceItems, 3);
   assert.equal(summary.hostStateEvidence.verifiedEvidenceItems, 0);
   assert.deepEqual(summary.hostStateEvidence.evidenceItems.map((item) => item.status), ["MISSING", "MISSING", "MISSING"]);
+  assert.match(summary.hostStateEvidence.verificationPolicy, /source reference, reviewer identity, and verification timestamp/);
+  assert.deepEqual(summary.hostStateEvidence.evidenceItems.map((item) => item.evidenceReference), [null, null, null]);
+  assert.deepEqual(summary.hostStateEvidence.evidenceItems.map((item) => item.verifiedBy), [null, null, null]);
+  assert.deepEqual(summary.hostStateEvidence.evidenceItems.map((item) => item.verifiedAt), [null, null, null]);
   assert.match(summary.hostStateEvidence.blockingReason, /state and local tax scope cannot be assessed/);
   assert.match(summary.hostStateEvidence.nextAction, /Verify all required host-state evidence/);
   assert.equal(hostState?.status, "BLOCKED");
@@ -98,6 +102,10 @@ test("case summary API stays deterministic, no-store and fail-closed", async () 
   assert.match(hostStatePage, /US host-state evidence/);
   assert.match(hostStatePage, /Scenario host-state inputs elsewhere do not update this record/);
   assert.match(hostStatePage, /Evidence checklist/);
+  assert.match(hostStatePage, /evidence\.verificationPolicy/);
+  assert.match(hostStatePage, /item\.evidenceReference/);
+  assert.match(hostStatePage, /item\.verifiedBy/);
+  assert.match(hostStatePage, /item\.verifiedAt/);
   assert.match(hostStatePage, /evidence\.verifiedEvidenceItems/);
   assert.match(hostStatePage, /evidence\.totalEvidenceItems/);
   assert.match(hostStatePage, /evidence\.evidenceItems\.map/);

@@ -52,11 +52,19 @@ export default function HostStateEvidencePage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Every required item must be verified before an authoritative host state can be established.
           </p>
+          <p className="mt-2 text-xs text-muted-foreground">Audit rule: {evidence.verificationPolicy}</p>
           <ul className="mt-4 space-y-3">
             {evidence.evidenceItems.map((item) => (
-              <li className="flex items-start justify-between gap-4 rounded-lg border p-4" key={item.id}>
-                <span className="text-sm">{item.label}</span>
-                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.status}</span>
+              <li className="rounded-lg border p-4" key={item.id}>
+                <div className="flex items-start justify-between gap-4">
+                  <span className="text-sm">{item.label}</span>
+                  <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.status}</span>
+                </div>
+                <div className="mt-3 grid gap-2 text-xs text-muted-foreground md:grid-cols-3">
+                  <span>Source reference: {item.evidenceReference ?? "Not recorded"}</span>
+                  <span>Verified by: {item.verifiedBy ?? "Not recorded"}</span>
+                  <span>Verified at: {item.verifiedAt ?? "Not recorded"}</span>
+                </div>
               </li>
             ))}
           </ul>
