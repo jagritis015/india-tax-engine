@@ -32,6 +32,15 @@ export type HostStateEvidenceVerificationRecordResult = HostStateEvidenceVerific
   auditHistory: HostStateEvidenceVerificationRecord[];
 };
 
+export interface HostStateEvidenceVerificationAuditRepository {
+  read(caseId: string): Promise<readonly HostStateEvidenceVerificationRecord[]>;
+  append(caseId: string, record: HostStateEvidenceVerificationRecord): Promise<void>;
+}
+
+export type HostStateEvidenceVerificationPersistResult = HostStateEvidenceVerificationValidation & {
+  record: HostStateEvidenceVerificationRecord | null;
+};
+
 export function validateHostStateEvidenceVerification(
   input: HostStateEvidenceVerificationInput,
   authenticatedReviewerId: string | null,
@@ -96,5 +105,37 @@ export function buildHostStateEvidenceVerificationRecord(
     errors: [],
     record,
     auditHistory: [...existingAuditHistory, record],
+  };
+}
+
+export async function persistHostStateEvidenceVerification(
+  caseId: string,
+  input: HostStateEvidenceVerificationInput,
+  authenticatedReviewerId: string | null,
+  repository: HostStateEvidenceVerificationAuditRepository,
+  now: Date = new Date(),
+): Promise<HostStateEvidenceVerificationPersistResult> {
+  const existingAuditHistory = await repository.read(caseId);
+  const result = buildHostStateEvidenceVerificationRecord(
+    input,
+    authenticatedReviewerId,
+    existingAuditHistory,
+    now,
+  );
+
+  if (!result.accepted || !result.record) {
+    return {
+      accepted: false,
+      errors: result.errors,
+      record: null,
+    };
+  }
+
+  await repository.append(caseId, result.record);
+
+  return {
+    accepted: true,
+    errors: [],
+    record: result.record,
   };
 }
