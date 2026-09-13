@@ -90,6 +90,21 @@ export default function AditiIndiaUsMobilityPage() {
         </div><div style={{display:"flex",gap:"8px 20px",flexWrap:"wrap",marginTop:14,fontSize:12,color:"#d7e5e0"}}><span><strong>{caseSummary.pendingDayEvidence}</strong> pending day evidence</span><span><strong>{caseSummary.unresolvedCompensationItems}</strong> compensation reviews</span><span>SPT: <strong>{caseSummary.substantialPresenceStatus.replaceAll("_"," ")}</strong></span><span><strong>{caseSummary.blockers}</strong> blockers · <strong>{caseSummary.openReviews}</strong> reviews</span></div></>}
       </section>
 
+      {caseSummary&&<section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:18,marginBottom:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start",flexWrap:"wrap",marginBottom:14}}><div><h2 style={{margin:"0 0 6px"}}>Authoritative SPT evidence</h2><p style={{margin:0,color:"#66717b",maxWidth:780}}>This is the evidence trail used by the server-controlled substantial-presence assessment. Scenario inputs below cannot change it.</p></div><a href={caseSummary.dayEvidenceProvenance.ledgerHref} style={{textDecoration:"none",border:"1px solid #cfd6dc",padding:"8px 11px",borderRadius:8,color:"inherit",fontWeight:700}}>Open day ledger</a></div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10}}>
+          {[
+            ["Ledger entries",String(caseSummary.dayEvidenceProvenance.totalEntries)],
+            ["Verified evidence",String(caseSummary.dayEvidenceProvenance.verifiedEntries)],
+            ["Pending evidence",String(caseSummary.dayEvidenceProvenance.pendingEntries)],
+            ["Current-year physical days",String(caseSummary.dayEvidenceProvenance.currentYearPhysicalDays)],
+            ["Prior-year physical days",String(caseSummary.dayEvidenceProvenance.priorYearPhysicalDays)],
+            ["Second-prior-year physical days",String(caseSummary.dayEvidenceProvenance.secondPriorYearPhysicalDays)],
+          ].map(([label,value])=><div key={label} style={{padding:12,border:"1px solid #e1e6ea",borderRadius:9,background:"#fbfcfd"}}><small style={{color:"#717b85"}}>{label}</small><strong style={{display:"block",marginTop:4}}>{value}</strong></div>)}
+        </div>
+        <div style={{marginTop:12,padding:12,borderRadius:9,background:"#f8fafb",color:"#5f6872",fontSize:13}}>Authoritative SPT: <strong>{caseSummary.substantialPresenceStatus.replaceAll("_"," ")}</strong> · Rule <strong>{caseSummary.dayEvidenceProvenance.substantialPresenceRuleVersion}</strong> · Source <strong>{caseSummary.dayEvidenceProvenance.source.replaceAll("-"," ")}</strong></div>
+      </section>}
+
       <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12,marginBottom:18}}>
         {[["Employee","NVL-017 · Aditi Joshi"],["Home","Bengaluru, Karnataka"],["Assignment","24-month long-term"],["Policy","Tax equalization"],["Home payroll","Assessment required"],["Host payroll","Assessment required"]].map(([label,value])=><article key={label} style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:15}}><div style={{fontSize:12,color:"#737d87"}}>{label}</div><strong style={{display:"block",marginTop:5}}>{value}</strong></article>)}
       </section>
