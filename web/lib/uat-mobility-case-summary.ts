@@ -14,6 +14,17 @@ export type MobilityCaseSummary = {
   monthlyStayAtHomeGrossInr: number;
   hypotheticalMonthlyWithholdingInr: number | null;
   pendingDayEvidence: number;
+  dayEvidenceProvenance: {
+    source: "auditable-day-ledger";
+    ledgerHref: "/uat/mobility/aditi-india-us/day-ledger";
+    totalEntries: number;
+    verifiedEntries: number;
+    pendingEntries: number;
+    currentYearPhysicalDays: number;
+    priorYearPhysicalDays: number;
+    secondPriorYearPhysicalDays: number;
+    substantialPresenceRuleVersion: string;
+  };
   unresolvedCompensationItems: number;
   substantialPresenceStatus: string;
   openReviews: number;
@@ -31,6 +42,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
   const readiness = assessAditiIndiaUsReadiness();
   const compensation = summarizeCompensationLedger(ADITI_INDIA_US_LEDGER);
   const dayLedger = summarizeMobilityDayLedger(ADITI_DAY_LEDGER);
+  const verifiedDayEvidence = ADITI_DAY_LEDGER.filter((entry) => entry.evidenceStatus === "verified").length;
   const hypotheticalTax = calculateIndiaHypotheticalTax({
     employeeId: "NVL-017",
     employeeName: "Aditi Joshi",
@@ -52,6 +64,17 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
     monthlyStayAtHomeGrossInr: compensation.hypoMonthlyInr,
     hypotheticalMonthlyWithholdingInr: hypotheticalTax.hypotheticalMonthlyWithholding,
     pendingDayEvidence: dayLedger.pendingEvidence,
+    dayEvidenceProvenance: {
+      source: "auditable-day-ledger",
+      ledgerHref: "/uat/mobility/aditi-india-us/day-ledger",
+      totalEntries: ADITI_DAY_LEDGER.length,
+      verifiedEntries: verifiedDayEvidence,
+      pendingEntries: dayLedger.pendingEvidence,
+      currentYearPhysicalDays: dayLedger.current.physical,
+      priorYearPhysicalDays: dayLedger.prior.physical,
+      secondPriorYearPhysicalDays: dayLedger.second.physical,
+      substantialPresenceRuleVersion: dayLedger.spt.ruleVersion,
+    },
     unresolvedCompensationItems: compensation.unresolved,
     substantialPresenceStatus: dayLedger.spt.status,
     openReviews: readiness.reviewCount,
