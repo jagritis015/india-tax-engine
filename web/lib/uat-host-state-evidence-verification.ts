@@ -18,6 +18,20 @@ export type HostStateEvidenceVerificationValidation = {
   errors: string[];
 };
 
+export type HostStateEvidenceVerificationRecord = {
+  sequence: number;
+  evidenceItemId: HostStateEvidenceItemId;
+  evidenceReference: string;
+  reviewerId: string;
+  verifiedAt: string;
+  recordedAt: string;
+};
+
+export type HostStateEvidenceVerificationRecordResult = HostStateEvidenceVerificationValidation & {
+  record: HostStateEvidenceVerificationRecord | null;
+  auditHistory: HostStateEvidenceVerificationRecord[];
+};
+
 export function validateHostStateEvidenceVerification(
   input: HostStateEvidenceVerificationInput,
   authenticatedReviewerId: string | null,
@@ -49,5 +63,38 @@ export function validateHostStateEvidenceVerification(
   return {
     accepted: errors.length === 0,
     errors,
+  };
+}
+
+export function buildHostStateEvidenceVerificationRecord(
+  input: HostStateEvidenceVerificationInput,
+  authenticatedReviewerId: string | null,
+  existingAuditHistory: readonly HostStateEvidenceVerificationRecord[],
+  now: Date = new Date(),
+): HostStateEvidenceVerificationRecordResult {
+  const validation = validateHostStateEvidenceVerification(input, authenticatedReviewerId, now);
+
+  if (!validation.accepted) {
+    return {
+      ...validation,
+      record: null,
+      auditHistory: [...existingAuditHistory],
+    };
+  }
+
+  const record: HostStateEvidenceVerificationRecord = {
+    sequence: existingAuditHistory.length + 1,
+    evidenceItemId: input.evidenceItemId as HostStateEvidenceItemId,
+    evidenceReference: input.evidenceReference.trim(),
+    reviewerId: authenticatedReviewerId as string,
+    verifiedAt: new Date(input.verifiedAt).toISOString(),
+    recordedAt: now.toISOString(),
+  };
+
+  return {
+    accepted: true,
+    errors: [],
+    record,
+    auditHistory: [...existingAuditHistory, record],
   };
 }

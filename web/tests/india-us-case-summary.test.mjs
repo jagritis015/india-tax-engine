@@ -114,6 +114,63 @@ test("host-state evidence verification validator fails closed for missing audit 
   assert.match(result.errors.join(" "), /cannot be in the future/);
 });
 
+test("host-state verification builds an append-only audit record without mutating prior history", async () => {
+  const { buildHostStateEvidenceVerificationRecord } = await vite.ssrLoadModule("/lib/uat-host-state-evidence-verification.ts");
+  const now = new Date("2026-09-13T16:30:00.000Z");
+  const existing = [
+    {
+      sequence: 1,
+      evidenceItemId: "primary-worksite",
+      evidenceReference: "worksite://NVL-017/v1",
+      reviewerId: "reviewer-17",
+      verifiedAt: "2026-09-13T15:00:00.000Z",
+      recordedAt: "2026-09-13T15:05:00.000Z",
+    },
+  ];
+
+  const result = buildHostStateEvidenceVerificationRecord(
+    {
+      evidenceItemId: "assignment-letter",
+      evidenceReference: "  assignment-letter://NVL-017/v1  ",
+      reviewerId: "reviewer-42",
+      verifiedAt: "2026-09-13T16:00:00.000Z",
+    },
+    "reviewer-42",
+    existing,
+    now,
+  );
+
+  assert.equal(result.accepted, true);
+  assert.equal(existing.length, 1);
+  assert.equal(result.auditHistory.length, 2);
+  assert.equal(result.record?.sequence, 2);
+  assert.equal(result.record?.evidenceReference, "assignment-letter://NVL-017/v1");
+  assert.equal(result.record?.reviewerId, "reviewer-42");
+  assert.equal(result.record?.verifiedAt, "2026-09-13T16:00:00.000Z");
+  assert.equal(result.record?.recordedAt, "2026-09-13T16:30:00.000Z");
+});
+
+test("invalid host-state verification cannot append to audit history", async () => {
+  const { buildHostStateEvidenceVerificationRecord } = await vite.ssrLoadModule("/lib/uat-host-state-evidence-verification.ts");
+  const existing = [];
+  const result = buildHostStateEvidenceVerificationRecord(
+    {
+      evidenceItemId: "scenario-host-state",
+      evidenceReference: "",
+      reviewerId: "spoofed-reviewer",
+      verifiedAt: "2026-09-13T17:00:00.000Z",
+    },
+    "reviewer-42",
+    existing,
+    new Date("2026-09-13T16:30:00.000Z"),
+  );
+
+  assert.equal(result.accepted, false);
+  assert.equal(result.record, null);
+  assert.deepEqual(result.auditHistory, []);
+  assert.deepEqual(existing, []);
+});
+
 test("case summary API stays deterministic, no-store and fail-closed", async () => {
   const route = await readFile(new URL("../app/api/mobility/aditi-india-us/summary/route.ts", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/uat/mobility/aditi-india-us/page.tsx", import.meta.url), "utf8");
