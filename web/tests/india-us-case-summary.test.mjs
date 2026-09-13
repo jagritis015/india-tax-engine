@@ -75,6 +75,45 @@ test("host-state blocker exposes an authoritative evidence checklist without inf
   assert.equal(hostState?.href, summary.hostStateEvidence.evidenceHref);
 });
 
+test("host-state evidence verification validator accepts only auditable reviewer-bound evidence", async () => {
+  const { validateHostStateEvidenceVerification } = await vite.ssrLoadModule("/lib/uat-host-state-evidence-verification.ts");
+  const now = new Date("2026-09-13T16:30:00.000Z");
+  const result = validateHostStateEvidenceVerification(
+    {
+      evidenceItemId: "assignment-letter",
+      evidenceReference: "assignment-letter://NVL-017/v1",
+      reviewerId: "reviewer-42",
+      verifiedAt: "2026-09-13T16:00:00.000Z",
+    },
+    "reviewer-42",
+    now,
+  );
+
+  assert.equal(result.accepted, true);
+  assert.deepEqual(result.errors, []);
+});
+
+test("host-state evidence verification validator fails closed for missing audit data or reviewer mismatch", async () => {
+  const { validateHostStateEvidenceVerification } = await vite.ssrLoadModule("/lib/uat-host-state-evidence-verification.ts");
+  const now = new Date("2026-09-13T16:30:00.000Z");
+  const result = validateHostStateEvidenceVerification(
+    {
+      evidenceItemId: "scenario-host-state",
+      evidenceReference: " ",
+      reviewerId: "spoofed-reviewer",
+      verifiedAt: "2026-09-13T17:00:00.000Z",
+    },
+    "reviewer-42",
+    now,
+  );
+
+  assert.equal(result.accepted, false);
+  assert.match(result.errors.join(" "), /not part of the authoritative host-state checklist/);
+  assert.match(result.errors.join(" "), /Evidence source reference is required/);
+  assert.match(result.errors.join(" "), /Reviewer identity must match the authenticated reviewer/);
+  assert.match(result.errors.join(" "), /cannot be in the future/);
+});
+
 test("case summary API stays deterministic, no-store and fail-closed", async () => {
   const route = await readFile(new URL("../app/api/mobility/aditi-india-us/summary/route.ts", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/uat/mobility/aditi-india-us/page.tsx", import.meta.url), "utf8");
