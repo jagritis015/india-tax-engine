@@ -30,6 +30,13 @@ export type MobilityCaseSummary = {
     source: "assignment-profile";
     evidenceHref: "/uat/mobility/aditi-india-us/host-state";
     requiredEvidence: string[];
+    evidenceItems: Array<{
+      id: string;
+      label: string;
+      status: "MISSING" | "VERIFIED";
+    }>;
+    verifiedEvidenceItems: number;
+    totalEvidenceItems: number;
     authoritativeState: null;
     stateTaxAssessmentAllowed: false;
   };
@@ -54,6 +61,23 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
   const firstPendingDayEvidenceId = ADITI_DAY_LEDGER.find((entry) => entry.evidenceStatus === "pending")?.id;
   const dayLedgerHref = `/uat/mobility/aditi-india-us/day-ledger${firstPendingDayEvidenceId ? `#evidence-${firstPendingDayEvidenceId}` : ""}`;
   const hostStateEvidenceHref = "/uat/mobility/aditi-india-us/host-state" as const;
+  const hostStateEvidenceItems = [
+    {
+      id: "assignment-letter",
+      label: "Signed assignment letter or amendment naming the primary US work location",
+      status: "MISSING" as const,
+    },
+    {
+      id: "primary-worksite",
+      label: "Employer-confirmed primary worksite address",
+      status: "MISSING" as const,
+    },
+    {
+      id: "hr-payroll-profile",
+      label: "Corroborating payroll or HR assignment profile",
+      status: "MISSING" as const,
+    },
+  ];
   const hypotheticalTax = calculateIndiaHypotheticalTax({
     employeeId: "NVL-017",
     employeeName: "Aditi Joshi",
@@ -90,11 +114,10 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       status: "UNVERIFIED",
       source: "assignment-profile",
       evidenceHref: hostStateEvidenceHref,
-      requiredEvidence: [
-        "Signed assignment letter or amendment naming the primary US work location",
-        "Employer-confirmed primary worksite address",
-        "Corroborating payroll or HR assignment profile",
-      ],
+      requiredEvidence: hostStateEvidenceItems.map((item) => item.label),
+      evidenceItems: hostStateEvidenceItems,
+      verifiedEvidenceItems: hostStateEvidenceItems.filter((item) => item.status === "VERIFIED").length,
+      totalEvidenceItems: hostStateEvidenceItems.length,
       authoritativeState: null,
       stateTaxAssessmentAllowed: false,
     },
