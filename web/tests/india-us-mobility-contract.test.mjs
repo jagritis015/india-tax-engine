@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const engine = await readFile(new URL("../lib/us-substantial-presence.ts", import.meta.url), "utf8");
 const page = await readFile(new URL("../app/uat/mobility/aditi-india-us/page.tsx", import.meta.url), "utf8");
+const hostStatePage = await readFile(new URL("../app/uat/mobility/aditi-india-us/host-state/page.tsx", import.meta.url), "utf8");
 const caseSummary = await readFile(new URL("../lib/uat-mobility-case-summary.ts", import.meta.url), "utf8");
 
 test("US substantial presence engine encodes the verified weighted-day mechanism", () => {
@@ -42,4 +43,12 @@ test("editable mobility controls are clearly separated from authoritative case s
   assert.match(page, /do not update the authoritative mobility case/);
   assert.match(page, /do not replace the evidence-backed day ledger or authoritative case SPT status/);
   assert.match(page, /does not update the authoritative case/);
+});
+
+test("host-state evidence screen exposes authoritative blocker reason and next action", () => {
+  assert.match(hostStatePage, /Why this gate is blocked/);
+  assert.match(hostStatePage, /evidence\.blockingReason/);
+  assert.match(hostStatePage, /Next safe action/);
+  assert.match(hostStatePage, /evidence\.nextAction/);
+  assert.match(hostStatePage, /Fail-closed rule/);
 });
