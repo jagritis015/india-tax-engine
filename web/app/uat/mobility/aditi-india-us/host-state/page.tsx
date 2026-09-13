@@ -40,6 +40,13 @@ export default function HostStateEvidencePage() {
           </div>
         </div>
 
+        <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="font-semibold">Why this gate is blocked</p>
+          <p className="mt-1">{evidence.blockingReason}</p>
+          <p className="mt-4 font-semibold">Next safe action</p>
+          <p className="mt-1">{evidence.nextAction}</p>
+        </div>
+
         <div className="mt-6 border-t pt-6">
           <h2 className="text-lg font-semibold">Evidence checklist</h2>
           <p className="mt-1 text-sm text-muted-foreground">
