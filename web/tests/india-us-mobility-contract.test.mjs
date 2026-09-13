@@ -52,3 +52,13 @@ test("host-state evidence screen exposes authoritative blocker reason and next a
   assert.match(hostStatePage, /evidence\.nextAction/);
   assert.match(hostStatePage, /Fail-closed rule/);
 });
+
+test("unified mobility page surfaces authoritative host-state guidance", () => {
+  assert.match(page, /Authoritative action required/);
+  assert.match(page, /caseSummary\.hostStateEvidence\.blockingReason/);
+  assert.match(page, /Next safe action:/);
+  assert.match(page, /caseSummary\.hostStateEvidence\.nextAction/);
+  assert.match(page, /caseSummary\.hostStateEvidence\.verifiedEvidenceItems/);
+  assert.match(page, /caseSummary\.hostStateEvidence\.stateTaxAssessmentAllowed/);
+  assert.match(page, /Review host-state evidence/);
+});
