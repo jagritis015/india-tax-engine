@@ -21,10 +21,14 @@ export default function HostStateEvidencePage() {
       </div>
 
       <section className="rounded-xl border p-6">
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Verification status</p>
             <p className="mt-1 text-lg font-semibold">{evidence.status}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Evidence verified</p>
+            <p className="mt-1 text-lg font-semibold">{evidence.verifiedEvidenceItems} of {evidence.totalEvidenceItems}</p>
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Authoritative host state</p>
@@ -37,10 +41,16 @@ export default function HostStateEvidencePage() {
         </div>
 
         <div className="mt-6 border-t pt-6">
-          <h2 className="text-lg font-semibold">Evidence required before verification</h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-            {evidence.requiredEvidence.map((item) => (
-              <li key={item}>{item}</li>
+          <h2 className="text-lg font-semibold">Evidence checklist</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every required item must be verified before an authoritative host state can be established.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {evidence.evidenceItems.map((item) => (
+              <li className="flex items-start justify-between gap-4 rounded-lg border p-4" key={item.id}>
+                <span className="text-sm">{item.label}</span>
+                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.status}</span>
+              </li>
             ))}
           </ul>
         </div>
