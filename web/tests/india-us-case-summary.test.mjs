@@ -52,10 +52,25 @@ test("case summary exposes evidence-backed SPT provenance from the authoritative
   assert.equal(summary.substantialPresenceStatus, "DOES_NOT_MEET_SPT");
 });
 
+test("host-state blocker exposes an authoritative evidence requirement without inferring tax scope", async () => {
+  const { buildAditiIndiaUsCaseSummary } = await vite.ssrLoadModule("/lib/uat-mobility-case-summary.ts");
+  const summary = buildAditiIndiaUsCaseSummary();
+  const hostState = summary.workstreams.find((item) => item.id === "host-state");
+
+  assert.equal(summary.hostStateEvidence.status, "UNVERIFIED");
+  assert.equal(summary.hostStateEvidence.source, "assignment-profile");
+  assert.equal(summary.hostStateEvidence.authoritativeState, null);
+  assert.equal(summary.hostStateEvidence.stateTaxAssessmentAllowed, false);
+  assert.equal(summary.hostStateEvidence.requiredEvidence.length, 3);
+  assert.equal(hostState?.status, "BLOCKED");
+  assert.equal(hostState?.href, summary.hostStateEvidence.evidenceHref);
+});
+
 test("case summary API stays deterministic, no-store and fail-closed", async () => {
   const route = await readFile(new URL("../app/api/mobility/aditi-india-us/summary/route.ts", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/uat/mobility/aditi-india-us/page.tsx", import.meta.url), "utf8");
   const ledgerPage = await readFile(new URL("../app/uat/mobility/aditi-india-us/day-ledger/page.tsx", import.meta.url), "utf8");
+  const hostStatePage = await readFile(new URL("../app/uat/mobility/aditi-india-us/host-state/page.tsx", import.meta.url), "utf8");
 
   assert.match(route, /buildAditiIndiaUsCaseSummary/);
   assert.match(route, /Cache-Control/);
@@ -75,4 +90,8 @@ test("case summary API stays deterministic, no-store and fail-closed", async () 
   assert.match(ledgerPage, /id={`evidence-\${item\.id}`}/);
   assert.match(ledgerPage, /item\.evidenceStatus==="pending"/);
   assert.match(ledgerPage, /jump directly to the first unresolved evidence record/);
+  assert.match(hostStatePage, /US host-state evidence/);
+  assert.match(hostStatePage, /Scenario host-state inputs elsewhere do not update this record/);
+  assert.match(hostStatePage, /state and local tax scope must not be inferred/);
+  assert.match(hostStatePage, /evidence\.requiredEvidence\.map/);
 });
