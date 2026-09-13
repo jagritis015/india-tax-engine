@@ -52,7 +52,7 @@ test("case summary exposes evidence-backed SPT provenance from the authoritative
   assert.equal(summary.substantialPresenceStatus, "DOES_NOT_MEET_SPT");
 });
 
-test("host-state blocker exposes an authoritative evidence requirement without inferring tax scope", async () => {
+test("host-state blocker exposes an authoritative evidence checklist without inferring tax scope", async () => {
   const { buildAditiIndiaUsCaseSummary } = await vite.ssrLoadModule("/lib/uat-mobility-case-summary.ts");
   const summary = buildAditiIndiaUsCaseSummary();
   const hostState = summary.workstreams.find((item) => item.id === "host-state");
@@ -62,6 +62,9 @@ test("host-state blocker exposes an authoritative evidence requirement without i
   assert.equal(summary.hostStateEvidence.authoritativeState, null);
   assert.equal(summary.hostStateEvidence.stateTaxAssessmentAllowed, false);
   assert.equal(summary.hostStateEvidence.requiredEvidence.length, 3);
+  assert.equal(summary.hostStateEvidence.totalEvidenceItems, 3);
+  assert.equal(summary.hostStateEvidence.verifiedEvidenceItems, 0);
+  assert.deepEqual(summary.hostStateEvidence.evidenceItems.map((item) => item.status), ["MISSING", "MISSING", "MISSING"]);
   assert.equal(hostState?.status, "BLOCKED");
   assert.equal(hostState?.href, summary.hostStateEvidence.evidenceHref);
 });
@@ -92,6 +95,9 @@ test("case summary API stays deterministic, no-store and fail-closed", async () 
   assert.match(ledgerPage, /jump directly to the first unresolved evidence record/);
   assert.match(hostStatePage, /US host-state evidence/);
   assert.match(hostStatePage, /Scenario host-state inputs elsewhere do not update this record/);
+  assert.match(hostStatePage, /Evidence checklist/);
+  assert.match(hostStatePage, /evidence\.verifiedEvidenceItems/);
+  assert.match(hostStatePage, /evidence\.totalEvidenceItems/);
+  assert.match(hostStatePage, /evidence\.evidenceItems\.map/);
   assert.match(hostStatePage, /state and local tax scope must not be inferred/);
-  assert.match(hostStatePage, /evidence\.requiredEvidence\.map/);
 });
