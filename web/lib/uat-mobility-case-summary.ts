@@ -30,10 +30,14 @@ export type MobilityCaseSummary = {
     source: "assignment-profile";
     evidenceHref: "/uat/mobility/aditi-india-us/host-state";
     requiredEvidence: string[];
+    verificationPolicy: string;
     evidenceItems: Array<{
       id: string;
       label: string;
       status: "MISSING" | "VERIFIED";
+      evidenceReference: string | null;
+      verifiedBy: string | null;
+      verifiedAt: string | null;
     }>;
     verifiedEvidenceItems: number;
     totalEvidenceItems: number;
@@ -68,16 +72,25 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       id: "assignment-letter",
       label: "Signed assignment letter or amendment naming the primary US work location",
       status: "MISSING" as const,
+      evidenceReference: null,
+      verifiedBy: null,
+      verifiedAt: null,
     },
     {
       id: "primary-worksite",
       label: "Employer-confirmed primary worksite address",
       status: "MISSING" as const,
+      evidenceReference: null,
+      verifiedBy: null,
+      verifiedAt: null,
     },
     {
       id: "hr-payroll-profile",
       label: "Corroborating payroll or HR assignment profile",
       status: "MISSING" as const,
+      evidenceReference: null,
+      verifiedBy: null,
+      verifiedAt: null,
     },
   ];
   const hypotheticalTax = calculateIndiaHypotheticalTax({
@@ -117,6 +130,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       source: "assignment-profile",
       evidenceHref: hostStateEvidenceHref,
       requiredEvidence: hostStateEvidenceItems.map((item) => item.label),
+      verificationPolicy: "An evidence item may be marked VERIFIED only when its source reference, reviewer identity, and verification timestamp are recorded.",
       evidenceItems: hostStateEvidenceItems,
       verifiedEvidenceItems: hostStateEvidenceItems.filter((item) => item.status === "VERIFIED").length,
       totalEvidenceItems: hostStateEvidenceItems.length,
