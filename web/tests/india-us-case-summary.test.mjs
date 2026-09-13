@@ -65,6 +65,8 @@ test("host-state blocker exposes an authoritative evidence checklist without inf
   assert.equal(summary.hostStateEvidence.totalEvidenceItems, 3);
   assert.equal(summary.hostStateEvidence.verifiedEvidenceItems, 0);
   assert.deepEqual(summary.hostStateEvidence.evidenceItems.map((item) => item.status), ["MISSING", "MISSING", "MISSING"]);
+  assert.match(summary.hostStateEvidence.blockingReason, /state and local tax scope cannot be assessed/);
+  assert.match(summary.hostStateEvidence.nextAction, /Verify all required host-state evidence/);
   assert.equal(hostState?.status, "BLOCKED");
   assert.equal(hostState?.href, summary.hostStateEvidence.evidenceHref);
 });
