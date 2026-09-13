@@ -35,6 +35,22 @@ test("case summary aggregates existing mobility workstreams without enabling blo
   assert.equal(summary.workstreams.find((item) => item.id === "us-tax")?.status, "BLOCKED");
 });
 
+test("case summary exposes evidence-backed SPT provenance from the authoritative day ledger", async () => {
+  const { buildAditiIndiaUsCaseSummary } = await vite.ssrLoadModule("/lib/uat-mobility-case-summary.ts");
+  const summary = buildAditiIndiaUsCaseSummary();
+
+  assert.equal(summary.dayEvidenceProvenance.source, "auditable-day-ledger");
+  assert.equal(summary.dayEvidenceProvenance.ledgerHref, "/uat/mobility/aditi-india-us/day-ledger");
+  assert.equal(summary.dayEvidenceProvenance.totalEntries, 5);
+  assert.equal(summary.dayEvidenceProvenance.verifiedEntries, 4);
+  assert.equal(summary.dayEvidenceProvenance.pendingEntries, summary.pendingDayEvidence);
+  assert.equal(summary.dayEvidenceProvenance.currentYearPhysicalDays, 3);
+  assert.equal(summary.dayEvidenceProvenance.priorYearPhysicalDays, 1);
+  assert.equal(summary.dayEvidenceProvenance.secondPriorYearPhysicalDays, 1);
+  assert.equal(summary.dayEvidenceProvenance.substantialPresenceRuleVersion, "irs-spt-2026-v1");
+  assert.equal(summary.substantialPresenceStatus, "DOES_NOT_MEET_SPT");
+});
+
 test("case summary API stays deterministic, no-store and fail-closed", async () => {
   const route = await readFile(new URL("../app/api/mobility/aditi-india-us/summary/route.ts", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/uat/mobility/aditi-india-us/page.tsx", import.meta.url), "utf8");
