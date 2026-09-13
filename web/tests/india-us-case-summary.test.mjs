@@ -47,7 +47,7 @@ test("case summary exposes evidence-backed SPT provenance from the authoritative
   assert.equal(summary.dayEvidenceProvenance.currentYearPhysicalDays, 3);
   assert.equal(summary.dayEvidenceProvenance.priorYearPhysicalDays, 1);
   assert.equal(summary.dayEvidenceProvenance.secondPriorYearPhysicalDays, 1);
-  assert.equal(summary.dayEvidenceProvenance.substantialPresenceRuleVersion, "irs-spt-2026-v1");
+  assert.equal(summary.dayEvidenceProvenance.substantialPresenceRuleVersion, "US-SPT-2026-09-IRS");
   assert.equal(summary.substantialPresenceStatus, "DOES_NOT_MEET_SPT");
 });
 
