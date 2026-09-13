@@ -16,7 +16,7 @@ export type MobilityCaseSummary = {
   pendingDayEvidence: number;
   dayEvidenceProvenance: {
     source: "auditable-day-ledger";
-    ledgerHref: "/uat/mobility/aditi-india-us/day-ledger";
+    ledgerHref: string;
     totalEntries: number;
     verifiedEntries: number;
     pendingEntries: number;
@@ -43,6 +43,8 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
   const compensation = summarizeCompensationLedger(ADITI_INDIA_US_LEDGER);
   const dayLedger = summarizeMobilityDayLedger(ADITI_DAY_LEDGER);
   const verifiedDayEvidence = ADITI_DAY_LEDGER.filter((entry) => entry.evidenceStatus === "verified").length;
+  const firstPendingDayEvidenceId = ADITI_DAY_LEDGER.find((entry) => entry.evidenceStatus === "pending")?.id;
+  const dayLedgerHref = `/uat/mobility/aditi-india-us/day-ledger${firstPendingDayEvidenceId ? `#evidence-${firstPendingDayEvidenceId}` : ""}`;
   const hypotheticalTax = calculateIndiaHypotheticalTax({
     employeeId: "NVL-017",
     employeeName: "Aditi Joshi",
@@ -66,7 +68,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
     pendingDayEvidence: dayLedger.pendingEvidence,
     dayEvidenceProvenance: {
       source: "auditable-day-ledger",
-      ledgerHref: "/uat/mobility/aditi-india-us/day-ledger",
+      ledgerHref: dayLedgerHref,
       totalEntries: ADITI_DAY_LEDGER.length,
       verifiedEntries: verifiedDayEvidence,
       pendingEntries: dayLedger.pendingEvidence,
@@ -80,7 +82,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
     openReviews: readiness.reviewCount,
     blockers: readiness.blockedCount,
     workstreams: [
-      { id: "location", label: "Location and residency", status: gate("location-evidence"), href: "/uat/mobility/aditi-india-us/day-ledger" },
+      { id: "location", label: "Location and residency", status: gate("location-evidence"), href: dayLedgerHref },
       { id: "host-state", label: "US host state", status: gate("host-state"), href: null },
       { id: "compensation", label: "Global compensation", status: gate("compensation-treatment"), href: "/uat/mobility/aditi-india-us/compensation" },
       { id: "india-hypothetical-tax", label: "India hypothetical tax", status: gate("india-hypothetical-tax"), href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
