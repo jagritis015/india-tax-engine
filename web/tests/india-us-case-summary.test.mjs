@@ -64,4 +64,10 @@ test("case summary API stays deterministic, no-store and fail-closed", async () 
   assert.match(page, /caseSummary\.payrollActivationAllowed/);
   assert.match(page, /caseSummary\.workstreams\.map/);
   assert.match(page, /Payroll activation remains blocked/);
+  assert.match(page, /Authoritative SPT evidence/);
+  assert.match(page, /caseSummary\.dayEvidenceProvenance\.ledgerHref/);
+  assert.match(page, /caseSummary\.dayEvidenceProvenance\.verifiedEntries/);
+  assert.match(page, /caseSummary\.dayEvidenceProvenance\.pendingEntries/);
+  assert.match(page, /caseSummary\.dayEvidenceProvenance\.substantialPresenceRuleVersion/);
+  assert.match(page, /Scenario inputs below cannot change it/);
 });
