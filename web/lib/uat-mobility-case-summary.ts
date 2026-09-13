@@ -37,6 +37,8 @@ export type MobilityCaseSummary = {
     }>;
     verifiedEvidenceItems: number;
     totalEvidenceItems: number;
+    blockingReason: string;
+    nextAction: string;
     authoritativeState: null;
     stateTaxAssessmentAllowed: false;
   };
@@ -118,6 +120,8 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       evidenceItems: hostStateEvidenceItems,
       verifiedEvidenceItems: hostStateEvidenceItems.filter((item) => item.status === "VERIFIED").length,
       totalEvidenceItems: hostStateEvidenceItems.length,
+      blockingReason: "Authoritative U.S. host state is not established, so state and local tax scope cannot be assessed.",
+      nextAction: "Verify all required host-state evidence before establishing the authoritative work location or enabling state-tax assessment.",
       authoritativeState: null,
       stateTaxAssessmentAllowed: false,
     },
