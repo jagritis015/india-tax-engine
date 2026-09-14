@@ -11,6 +11,30 @@ export type HostStateEvidencePersistenceCapability = {
   bindingName: string | null;
 };
 
+export type HostStateEvidencePersistenceRuntimeState = {
+  approved: boolean;
+  durableBindingPresent: boolean;
+  bindingName: string | null | undefined;
+};
+
+export function resolveHostStateEvidencePersistenceCapability(
+  runtime: HostStateEvidencePersistenceRuntimeState,
+): HostStateEvidencePersistenceCapability {
+  const normalizedBindingName = runtime.bindingName?.trim() || null;
+
+  if (!runtime.approved || !runtime.durableBindingPresent || !normalizedBindingName) {
+    return {
+      durableWritesEnabled: false,
+      bindingName: null,
+    };
+  }
+
+  return {
+    durableWritesEnabled: true,
+    bindingName: normalizedBindingName,
+  };
+}
+
 export type HostStateEvidenceVerificationServiceContext = {
   reviewer: HostStateEvidenceReviewerContext;
   repository: HostStateEvidenceVerificationAuditRepository;
