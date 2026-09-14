@@ -53,6 +53,15 @@ test("host-state evidence screen exposes authoritative blocker reason and next a
   assert.match(hostStatePage, /Fail-closed rule/);
 });
 
+test("host-state UAT persistence readiness remains an observable fail-closed boundary", () => {
+  assert.match(hostStatePage, /resolveHostStateEvidencePersistenceRuntimeState\(process\.env\)/);
+  assert.match(hostStatePage, /inspectHostStateEvidencePersistenceReadiness\(runtime\)/);
+  assert.match(hostStatePage, /persistenceReadiness\.ready \? "Runtime ready" : "Fail closed"/);
+  assert.match(hostStatePage, /Writes activated/);
+  assert.match(hostStatePage, /<dd className="mt-1 font-medium">No<\/dd>/);
+  assert.match(hostStatePage, /does not activate verification writes or state tax calculation/);
+});
+
 test("unified mobility page surfaces authoritative host-state guidance", () => {
   assert.match(page, /Authoritative action required/);
   assert.match(page, /caseSummary\.hostStateEvidence\.blockingReason/);
