@@ -17,12 +17,58 @@ export type HostStateEvidencePersistenceRuntimeState = {
   bindingName: string | null | undefined;
 };
 
+export type HostStateEvidencePersistenceReadiness = {
+  ready: boolean;
+  reason:
+    | "STORAGE_NOT_APPROVED"
+    | "DURABLE_BINDING_ABSENT"
+    | "BINDING_NAME_MISSING"
+    | "READY";
+  bindingName: string | null;
+};
+
+export function inspectHostStateEvidencePersistenceReadiness(
+  runtime: HostStateEvidencePersistenceRuntimeState,
+): HostStateEvidencePersistenceReadiness {
+  const normalizedBindingName = runtime.bindingName?.trim() || null;
+
+  if (!runtime.approved) {
+    return {
+      ready: false,
+      reason: "STORAGE_NOT_APPROVED",
+      bindingName: null,
+    };
+  }
+
+  if (!runtime.durableBindingPresent) {
+    return {
+      ready: false,
+      reason: "DURABLE_BINDING_ABSENT",
+      bindingName: null,
+    };
+  }
+
+  if (!normalizedBindingName) {
+    return {
+      ready: false,
+      reason: "BINDING_NAME_MISSING",
+      bindingName: null,
+    };
+  }
+
+  return {
+    ready: true,
+    reason: "READY",
+    bindingName: normalizedBindingName,
+  };
+}
+
 export function resolveHostStateEvidencePersistenceCapability(
   runtime: HostStateEvidencePersistenceRuntimeState,
 ): HostStateEvidencePersistenceCapability {
-  const normalizedBindingName = runtime.bindingName?.trim() || null;
+  const readiness = inspectHostStateEvidencePersistenceReadiness(runtime);
 
-  if (!runtime.approved || !runtime.durableBindingPresent || !normalizedBindingName) {
+  if (!readiness.ready) {
     return {
       durableWritesEnabled: false,
       bindingName: null,
@@ -31,7 +77,7 @@ export function resolveHostStateEvidencePersistenceCapability(
 
   return {
     durableWritesEnabled: true,
-    bindingName: normalizedBindingName,
+    bindingName: readiness.bindingName,
   };
 }
 
