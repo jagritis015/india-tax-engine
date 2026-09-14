@@ -1,9 +1,30 @@
 import Link from "next/link";
 import { buildAditiIndiaUsCaseSummary } from "@/lib/uat-mobility-case-summary";
+import {
+  inspectHostStateEvidencePersistenceReadiness,
+  resolveHostStateEvidencePersistenceRuntimeState,
+} from "@/lib/uat-host-state-evidence-verification-service";
+
+function readinessExplanation(reason: string): string {
+  switch (reason) {
+    case "STORAGE_NOT_APPROVED":
+      return "Durable verification storage has not been explicitly approved for this runtime.";
+    case "DURABLE_BINDING_ABSENT":
+      return "Approved storage is configured, but no durable runtime binding is present.";
+    case "BINDING_NAME_MISSING":
+      return "A durable binding is present, but its approved binding name is missing.";
+    case "READY":
+      return "The runtime reports an approved durable binding. Verification writes still remain inactive in UAT.";
+    default:
+      return "Persistence readiness could not be determined. Verification writes remain inactive.";
+  }
+}
 
 export default function HostStateEvidencePage() {
   const summary = buildAditiIndiaUsCaseSummary();
   const evidence = summary.hostStateEvidence;
+  const runtime = resolveHostStateEvidencePersistenceRuntimeState(process.env);
+  const persistenceReadiness = inspectHostStateEvidencePersistenceReadiness(runtime);
 
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
@@ -45,6 +66,35 @@ export default function HostStateEvidencePage() {
           <p className="mt-1">{evidence.blockingReason}</p>
           <p className="mt-4 font-semibold">Next safe action</p>
           <p className="mt-1">{evidence.nextAction}</p>
+        </div>
+
+        <div className="mt-6 rounded-lg border p-4 text-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="font-semibold">Verification persistence readiness</p>
+              <p className="mt-1 text-muted-foreground">
+                Read-only runtime diagnostic. It does not activate verification writes or state tax calculation.
+              </p>
+            </div>
+            <span className="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+              {persistenceReadiness.ready ? "Runtime ready" : "Fail closed"}
+            </span>
+          </div>
+          <dl className="mt-4 grid gap-3 md:grid-cols-3">
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Reason</dt>
+              <dd className="mt-1 font-medium">{persistenceReadiness.reason}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Binding</dt>
+              <dd className="mt-1 font-medium">{persistenceReadiness.bindingName ?? "Not available"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Writes activated</dt>
+              <dd className="mt-1 font-medium">No</dd>
+            </div>
+          </dl>
+          <p className="mt-4 text-muted-foreground">{readinessExplanation(persistenceReadiness.reason)}</p>
         </div>
 
         <div className="mt-6 border-t pt-6">
