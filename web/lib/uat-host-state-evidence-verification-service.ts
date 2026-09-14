@@ -6,9 +6,15 @@ import {
   type HostStateEvidenceVerificationRequest,
 } from "./uat-host-state-evidence-verification";
 
+export type HostStateEvidencePersistenceCapability = {
+  durableWritesEnabled: boolean;
+  bindingName: string | null;
+};
+
 export type HostStateEvidenceVerificationServiceContext = {
   reviewer: HostStateEvidenceReviewerContext;
   repository: HostStateEvidenceVerificationAuditRepository;
+  persistence: HostStateEvidencePersistenceCapability;
 };
 
 export async function verifyHostStateEvidenceForCase(
@@ -23,6 +29,14 @@ export async function verifyHostStateEvidenceForCase(
     return {
       accepted: false,
       errors: ["Case identifier is required."],
+      record: null,
+    };
+  }
+
+  if (!context.persistence.durableWritesEnabled || !context.persistence.bindingName?.trim()) {
+    return {
+      accepted: false,
+      errors: ["Approved durable verification storage is unavailable."],
       record: null,
     };
   }
