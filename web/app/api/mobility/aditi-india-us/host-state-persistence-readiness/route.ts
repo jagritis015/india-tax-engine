@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   inspectHostStateEvidencePersistenceReadiness,
   resolveHostStateEvidencePersistenceRuntimeState,
-} from "../../../../../../lib/uat-host-state-evidence-verification-service";
+} from "../../../../../lib/uat-host-state-evidence-verification-service";
 
 export const dynamic = "force-dynamic";
 
