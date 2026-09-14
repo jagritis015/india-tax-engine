@@ -39,6 +39,57 @@ const enabledPersistence = {
   bindingName: "test-durable-store",
 };
 
+test("runtime capability remains disabled when storage is not explicitly approved", async () => {
+  const { resolveHostStateEvidencePersistenceCapability } = await vite.ssrLoadModule(
+    "/lib/uat-host-state-evidence-verification-service.ts",
+  );
+
+  const capability = resolveHostStateEvidencePersistenceCapability({
+    approved: false,
+    durableBindingPresent: true,
+    bindingName: "DB",
+  });
+
+  assert.deepEqual(capability, {
+    durableWritesEnabled: false,
+    bindingName: null,
+  });
+});
+
+test("runtime capability remains disabled when the approved binding is absent", async () => {
+  const { resolveHostStateEvidencePersistenceCapability } = await vite.ssrLoadModule(
+    "/lib/uat-host-state-evidence-verification-service.ts",
+  );
+
+  const capability = resolveHostStateEvidencePersistenceCapability({
+    approved: true,
+    durableBindingPresent: false,
+    bindingName: "DB",
+  });
+
+  assert.deepEqual(capability, {
+    durableWritesEnabled: false,
+    bindingName: null,
+  });
+});
+
+test("runtime capability enables writes only for an approved present named binding", async () => {
+  const { resolveHostStateEvidencePersistenceCapability } = await vite.ssrLoadModule(
+    "/lib/uat-host-state-evidence-verification-service.ts",
+  );
+
+  const capability = resolveHostStateEvidencePersistenceCapability({
+    approved: true,
+    durableBindingPresent: true,
+    bindingName: "  DB  ",
+  });
+
+  assert.deepEqual(capability, {
+    durableWritesEnabled: true,
+    bindingName: "DB",
+  });
+});
+
 test("service boundary rejects a blank case identifier before repository access", async () => {
   const { verifyHostStateEvidenceForCase } = await vite.ssrLoadModule(
     "/lib/uat-host-state-evidence-verification-service.ts",
