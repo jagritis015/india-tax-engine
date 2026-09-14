@@ -67,13 +67,20 @@ test("unverified host-state evidence cannot authorize state tax or payroll activ
   assert.match(caseSummary, /status: "UNVERIFIED"/);
   assert.match(caseSummary, /authoritativeState: null/);
   assert.match(caseSummary, /stateTaxAssessmentAllowed: false/);
-  assert.match(caseSummary, /status: "MISSING" as const/);
-  assert.match(caseSummary, /evidenceReference: null/);
-  assert.match(caseSummary, /verifiedBy: null/);
-  assert.match(caseSummary, /verifiedAt: null/);
+  assert.match(caseSummary, /status: hasCompleteVerificationProvenance \? "VERIFIED" : "MISSING"/);
+  assert.match(caseSummary, /evidenceReference = input\.evidenceReference\?\.trim\(\) \|\| null/);
+  assert.match(caseSummary, /verifiedBy = input\.verifiedBy\?\.trim\(\) \|\| null/);
+  assert.match(caseSummary, /verifiedAt = input\.verifiedAt\?\.trim\(\) \|\| null/);
   assert.match(readiness, /id: "host-state"[\s\S]*?status: "BLOCKED"/);
   assert.match(readiness, /const payrollActivationAllowed = blockedCount === 0 && reviewCount === 0/);
   assert.match(readiness, /Keep actual US monetary tax and host-payroll activation blocked until verified engines are available/);
+});
+
+test("host-state evidence reaches VERIFIED only with complete provenance", () => {
+  assert.match(caseSummary, /export function buildHostStateEvidenceItem/);
+  assert.match(caseSummary, /Boolean\(evidenceReference && verifiedBy && verifiedAt\)/);
+  assert.match(caseSummary, /status: hasCompleteVerificationProvenance \? "VERIFIED" : "MISSING"/);
+  assert.match(caseSummary, /An evidence item may be marked VERIFIED only when its source reference, reviewer identity, and verification timestamp are recorded/);
 });
 
 test("unified mobility page surfaces authoritative host-state guidance", () => {
