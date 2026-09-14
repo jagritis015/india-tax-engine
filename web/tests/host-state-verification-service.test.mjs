@@ -34,6 +34,11 @@ function createRepository() {
   };
 }
 
+const enabledPersistence = {
+  durableWritesEnabled: true,
+  bindingName: "test-durable-store",
+};
+
 test("service boundary rejects a blank case identifier before repository access", async () => {
   const { verifyHostStateEvidenceForCase } = await vite.ssrLoadModule(
     "/lib/uat-host-state-evidence-verification-service.ts",
@@ -50,6 +55,7 @@ test("service boundary rejects a blank case identifier before repository access"
     {
       reviewer: { reviewerId: "server-reviewer-42" },
       repository,
+      persistence: enabledPersistence,
     },
     new Date("2026-09-14T03:30:00.000Z"),
   );
@@ -59,6 +65,37 @@ test("service boundary rejects a blank case identifier before repository access"
   assert.equal(repository.reads, 0);
   assert.equal(repository.appends.length, 0);
   assert.match(result.errors.join(" "), /case identifier is required/i);
+});
+
+test("service boundary fails closed before repository access when durable storage is unavailable", async () => {
+  const { verifyHostStateEvidenceForCase } = await vite.ssrLoadModule(
+    "/lib/uat-host-state-evidence-verification-service.ts",
+  );
+  const repository = createRepository();
+
+  const result = await verifyHostStateEvidenceForCase(
+    "NVL-017",
+    {
+      evidenceItemId: "assignment-letter",
+      evidenceReference: "assignment-letter://NVL-017/v3",
+      verifiedAt: "2026-09-14T03:00:00.000Z",
+    },
+    {
+      reviewer: { reviewerId: "server-reviewer-42" },
+      repository,
+      persistence: {
+        durableWritesEnabled: false,
+        bindingName: null,
+      },
+    },
+    new Date("2026-09-14T03:30:00.000Z"),
+  );
+
+  assert.equal(result.accepted, false);
+  assert.equal(result.record, null);
+  assert.equal(repository.reads, 0);
+  assert.equal(repository.appends.length, 0);
+  assert.match(result.errors.join(" "), /durable verification storage is unavailable/i);
 });
 
 test("service boundary normalizes case id and persists only through trusted context", async () => {
@@ -78,6 +115,7 @@ test("service boundary normalizes case id and persists only through trusted cont
     {
       reviewer: { reviewerId: "server-reviewer-42" },
       repository,
+      persistence: enabledPersistence,
     },
     new Date("2026-09-14T03:30:00.000Z"),
   );
