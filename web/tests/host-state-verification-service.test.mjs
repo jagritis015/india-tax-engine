@@ -90,6 +90,60 @@ test("runtime capability enables writes only for an approved present named bindi
   });
 });
 
+test("runtime readiness reports storage approval as the first blocking gate", async () => {
+  const { inspectHostStateEvidencePersistenceReadiness } = await vite.ssrLoadModule(
+    "/lib/uat-host-state-evidence-verification-service.ts",
+  );
+
+  const readiness = inspectHostStateEvidencePersistenceReadiness({
+    approved: false,
+    durableBindingPresent: false,
+    bindingName: null,
+  });
+
+  assert.deepEqual(readiness, {
+    ready: false,
+    reason: "STORAGE_NOT_APPROVED",
+    bindingName: null,
+  });
+});
+
+test("runtime readiness identifies an approved but absent durable binding", async () => {
+  const { inspectHostStateEvidencePersistenceReadiness } = await vite.ssrLoadModule(
+    "/lib/uat-host-state-evidence-verification-service.ts",
+  );
+
+  const readiness = inspectHostStateEvidencePersistenceReadiness({
+    approved: true,
+    durableBindingPresent: false,
+    bindingName: "DB",
+  });
+
+  assert.deepEqual(readiness, {
+    ready: false,
+    reason: "DURABLE_BINDING_ABSENT",
+    bindingName: null,
+  });
+});
+
+test("runtime readiness reports a normalized binding when persistence is ready", async () => {
+  const { inspectHostStateEvidencePersistenceReadiness } = await vite.ssrLoadModule(
+    "/lib/uat-host-state-evidence-verification-service.ts",
+  );
+
+  const readiness = inspectHostStateEvidencePersistenceReadiness({
+    approved: true,
+    durableBindingPresent: true,
+    bindingName: "  DB  ",
+  });
+
+  assert.deepEqual(readiness, {
+    ready: true,
+    reason: "READY",
+    bindingName: "DB",
+  });
+});
+
 test("service boundary rejects a blank case identifier before repository access", async () => {
   const { verifyHostStateEvidenceForCase } = await vite.ssrLoadModule(
     "/lib/uat-host-state-evidence-verification-service.ts",
