@@ -27,6 +27,28 @@ export type HostStateEvidencePersistenceReadiness = {
   bindingName: string | null;
 };
 
+export type HostStateEvidencePersistenceEnvironment = {
+  HOST_STATE_EVIDENCE_STORAGE_APPROVED?: string;
+  HOST_STATE_EVIDENCE_DURABLE_BINDING_PRESENT?: string;
+  HOST_STATE_EVIDENCE_STORAGE_BINDING?: string;
+};
+
+function isExplicitlyEnabled(value: string | undefined): boolean {
+  return value?.trim().toLowerCase() === "true";
+}
+
+export function resolveHostStateEvidencePersistenceRuntimeState(
+  environment: HostStateEvidencePersistenceEnvironment,
+): HostStateEvidencePersistenceRuntimeState {
+  return {
+    approved: isExplicitlyEnabled(environment.HOST_STATE_EVIDENCE_STORAGE_APPROVED),
+    durableBindingPresent: isExplicitlyEnabled(
+      environment.HOST_STATE_EVIDENCE_DURABLE_BINDING_PRESENT,
+    ),
+    bindingName: environment.HOST_STATE_EVIDENCE_STORAGE_BINDING ?? null,
+  };
+}
+
 export function inspectHostStateEvidencePersistenceReadiness(
   runtime: HostStateEvidencePersistenceRuntimeState,
 ): HostStateEvidencePersistenceReadiness {
