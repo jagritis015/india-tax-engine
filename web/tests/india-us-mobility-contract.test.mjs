@@ -6,6 +6,7 @@ const engine = await readFile(new URL("../lib/us-substantial-presence.ts", impor
 const page = await readFile(new URL("../app/uat/mobility/aditi-india-us/page.tsx", import.meta.url), "utf8");
 const hostStatePage = await readFile(new URL("../app/uat/mobility/aditi-india-us/host-state/page.tsx", import.meta.url), "utf8");
 const caseSummary = await readFile(new URL("../lib/uat-mobility-case-summary.ts", import.meta.url), "utf8");
+const readiness = await readFile(new URL("../lib/uat-mobility-readiness.ts", import.meta.url), "utf8");
 
 test("US substantial presence engine encodes the verified weighted-day mechanism", () => {
   assert.match(engine, /current \* 6 \+ prior \* 2 \+ secondPrior/);
@@ -60,6 +61,19 @@ test("host-state UAT persistence readiness remains an observable fail-closed bou
   assert.match(hostStatePage, /Writes activated/);
   assert.match(hostStatePage, /<dd className="mt-1 font-medium">No<\/dd>/);
   assert.match(hostStatePage, /does not activate verification writes or state tax calculation/);
+});
+
+test("unverified host-state evidence cannot authorize state tax or payroll activation", () => {
+  assert.match(caseSummary, /status: "UNVERIFIED"/);
+  assert.match(caseSummary, /authoritativeState: null/);
+  assert.match(caseSummary, /stateTaxAssessmentAllowed: false/);
+  assert.match(caseSummary, /status: "MISSING" as const/);
+  assert.match(caseSummary, /evidenceReference: null/);
+  assert.match(caseSummary, /verifiedBy: null/);
+  assert.match(caseSummary, /verifiedAt: null/);
+  assert.match(readiness, /id: "host-state"[\s\S]*?status: "BLOCKED"/);
+  assert.match(readiness, /const payrollActivationAllowed = blockedCount === 0 && reviewCount === 0/);
+  assert.match(readiness, /Keep actual US monetary tax and host-payroll activation blocked until verified engines are available/);
 });
 
 test("unified mobility page surfaces authoritative host-state guidance", () => {
