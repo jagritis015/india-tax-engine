@@ -3,6 +3,15 @@ import { calculateIndiaHypotheticalTax } from "./uat-india-hypothetical-tax";
 import { ADITI_DAY_LEDGER, summarizeMobilityDayLedger } from "./uat-mobility-day-ledger";
 import { assessAditiIndiaUsReadiness } from "./uat-mobility-readiness";
 
+type HostStateEvidenceItem = {
+  id: string;
+  label: string;
+  status: "MISSING" | "VERIFIED";
+  evidenceReference: string | null;
+  verifiedBy: string | null;
+  verifiedAt: string | null;
+};
+
 export type MobilityCaseSummary = {
   caseId: "MOB-NVL-017-IND-US";
   employeeId: "NVL-017";
@@ -31,14 +40,7 @@ export type MobilityCaseSummary = {
     evidenceHref: "/uat/mobility/aditi-india-us/host-state";
     requiredEvidence: string[];
     verificationPolicy: string;
-    evidenceItems: Array<{
-      id: string;
-      label: string;
-      status: "MISSING" | "VERIFIED";
-      evidenceReference: string | null;
-      verifiedBy: string | null;
-      verifiedAt: string | null;
-    }>;
+    evidenceItems: HostStateEvidenceItem[];
     verifiedEvidenceItems: number;
     totalEvidenceItems: number;
     blockingReason: string;
@@ -59,6 +61,28 @@ export type MobilityCaseSummary = {
   ruleVersion: "niva-india-us-case-summary-uat-v1";
 };
 
+export function buildHostStateEvidenceItem(input: {
+  id: string;
+  label: string;
+  evidenceReference?: string | null;
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+}): HostStateEvidenceItem {
+  const evidenceReference = input.evidenceReference?.trim() || null;
+  const verifiedBy = input.verifiedBy?.trim() || null;
+  const verifiedAt = input.verifiedAt?.trim() || null;
+  const hasCompleteVerificationProvenance = Boolean(evidenceReference && verifiedBy && verifiedAt);
+
+  return {
+    id: input.id,
+    label: input.label,
+    status: hasCompleteVerificationProvenance ? "VERIFIED" : "MISSING",
+    evidenceReference,
+    verifiedBy,
+    verifiedAt,
+  };
+}
+
 export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
   const readiness = assessAditiIndiaUsReadiness();
   const compensation = summarizeCompensationLedger(ADITI_INDIA_US_LEDGER);
@@ -68,30 +92,18 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
   const dayLedgerHref = `/uat/mobility/aditi-india-us/day-ledger${firstPendingDayEvidenceId ? `#evidence-${firstPendingDayEvidenceId}` : ""}`;
   const hostStateEvidenceHref = "/uat/mobility/aditi-india-us/host-state" as const;
   const hostStateEvidenceItems = [
-    {
+    buildHostStateEvidenceItem({
       id: "assignment-letter",
       label: "Signed assignment letter or amendment naming the primary US work location",
-      status: "MISSING" as const,
-      evidenceReference: null,
-      verifiedBy: null,
-      verifiedAt: null,
-    },
-    {
+    }),
+    buildHostStateEvidenceItem({
       id: "primary-worksite",
       label: "Employer-confirmed primary worksite address",
-      status: "MISSING" as const,
-      evidenceReference: null,
-      verifiedBy: null,
-      verifiedAt: null,
-    },
-    {
+    }),
+    buildHostStateEvidenceItem({
       id: "hr-payroll-profile",
       label: "Corroborating payroll or HR assignment profile",
-      status: "MISSING" as const,
-      evidenceReference: null,
-      verifiedBy: null,
-      verifiedAt: null,
-    },
+    }),
   ];
   const hypotheticalTax = calculateIndiaHypotheticalTax({
     employeeId: "NVL-017",
