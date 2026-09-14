@@ -13,6 +13,15 @@ export type HostStateEvidenceVerificationInput = {
   verifiedAt: string;
 };
 
+export type HostStateEvidenceVerificationRequest = Omit<
+  HostStateEvidenceVerificationInput,
+  "reviewerId"
+>;
+
+export type HostStateEvidenceReviewerContext = {
+  reviewerId: string | null;
+};
+
 export type HostStateEvidenceVerificationValidation = {
   accepted: boolean;
   errors: string[];
@@ -138,4 +147,28 @@ export async function persistHostStateEvidenceVerification(
     errors: [],
     record: result.record,
   };
+}
+
+export async function persistHostStateEvidenceVerificationFromReviewerContext(
+  caseId: string,
+  request: HostStateEvidenceVerificationRequest,
+  reviewerContext: HostStateEvidenceReviewerContext,
+  repository: HostStateEvidenceVerificationAuditRepository,
+  now: Date = new Date(),
+): Promise<HostStateEvidenceVerificationPersistResult> {
+  const reviewerId = reviewerContext.reviewerId;
+  const trustedInput: HostStateEvidenceVerificationInput = {
+    evidenceItemId: request.evidenceItemId,
+    evidenceReference: request.evidenceReference,
+    reviewerId: reviewerId ?? "",
+    verifiedAt: request.verifiedAt,
+  };
+
+  return persistHostStateEvidenceVerification(
+    caseId,
+    trustedInput,
+    reviewerId,
+    repository,
+    now,
+  );
 }
