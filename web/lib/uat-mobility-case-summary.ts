@@ -1,4 +1,5 @@
 import { ADITI_INDIA_US_LEDGER, summarizeCompensationLedger } from "./uat-global-compensation-ledger";
+import { assessHostStateAuthorityReview } from "./uat-host-state-authority-review";
 import { calculateIndiaHypotheticalTax } from "./uat-india-hypothetical-tax";
 import { ADITI_DAY_LEDGER, summarizeMobilityDayLedger } from "./uat-mobility-day-ledger";
 import { assessAditiIndiaUsReadiness } from "./uat-mobility-readiness";
@@ -46,7 +47,9 @@ export type MobilityCaseSummary = {
     allRequiredEvidenceVerified: boolean;
     blockingReason: string;
     nextAction: string;
-    authoritativeState: null;
+    authorityReviewStatus: "BLOCKED" | "REVIEW_REQUIRED" | "APPROVED";
+    candidateState: string | null;
+    authoritativeState: string | null;
     stateTaxAssessmentAllowed: false;
   };
   unresolvedCompensationItems: number;
@@ -108,6 +111,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
     buildHostStateEvidenceItem({ id: "hr-payroll-profile", label: "Corroborating payroll or HR assignment profile" }),
   ];
   const allRequiredHostStateEvidenceVerified = areAllHostStateEvidenceItemsVerified(hostStateEvidenceItems);
+  const authorityReview = assessHostStateAuthorityReview({ allRequiredEvidenceVerified: allRequiredHostStateEvidenceVerified });
   const readiness = assessAditiIndiaUsReadiness({ allRequiredHostStateEvidenceVerified });
   const hypotheticalTax = calculateIndiaHypotheticalTax({
     employeeId: "NVL-017",
@@ -146,7 +150,10 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       allRequiredEvidenceVerified: allRequiredHostStateEvidenceVerified,
       blockingReason: "Authoritative U.S. host state is not established, so state and local tax scope cannot be assessed.",
       nextAction: "Verify all required host-state evidence before establishing the authoritative work location or enabling state-tax assessment.",
-      authoritativeState: null, stateTaxAssessmentAllowed: false,
+      authorityReviewStatus: authorityReview.status,
+      candidateState: authorityReview.candidateState,
+      authoritativeState: authorityReview.authoritativeState,
+      stateTaxAssessmentAllowed: authorityReview.stateTaxAssessmentAllowed,
     },
     unresolvedCompensationItems: compensation.unresolved,
     substantialPresenceStatus: dayLedger.spt.status,
