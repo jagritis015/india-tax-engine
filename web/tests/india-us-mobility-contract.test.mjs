@@ -71,7 +71,7 @@ test("unverified host-state evidence cannot authorize state tax or payroll activ
   assert.match(caseSummary, /evidenceReference = input\.evidenceReference\?\.trim\(\) \|\| null/);
   assert.match(caseSummary, /verifiedBy = input\.verifiedBy\?\.trim\(\) \|\| null/);
   assert.match(caseSummary, /verifiedAt = input\.verifiedAt\?\.trim\(\) \|\| null/);
-  assert.match(readiness, /id: "host-state"[\s\S]*?status: "BLOCKED"/);
+  assert.match(readiness, /resolveHostStateReadinessGateStatus\(allRequiredHostStateEvidenceVerified\)/);
   assert.match(readiness, /const payrollActivationAllowed = blockedCount === 0 && reviewCount === 0/);
   assert.match(readiness, /Keep actual US monetary tax and host-payroll activation blocked until verified engines are available/);
 });
@@ -91,6 +91,15 @@ test("all required host-state evidence must be verified before the gate may prog
   assert.match(caseSummary, /Boolean\(item\.evidenceReference && item\.verifiedBy && item\.verifiedAt\)/);
   assert.match(caseSummary, /allRequiredEvidenceVerified: allRequiredHostStateEvidenceVerified/);
   assert.match(caseSummary, /All required evidence items must be VERIFIED before the host-state evidence gate may progress/);
+});
+
+test("verified host-state evidence can only advance the readiness gate to controlled review", () => {
+  assert.match(readiness, /export function resolveHostStateReadinessGateStatus/);
+  assert.match(readiness, /allRequiredEvidenceVerified \? "REVIEW_REQUIRED" : "BLOCKED"/);
+  assert.match(readiness, /allRequiredHostStateEvidenceVerified\?: boolean/);
+  assert.match(readiness, /Authoritative state selection still requires controlled review/);
+  assert.match(readiness, /status: "BLOCKED"/);
+  assert.doesNotMatch(readiness, /allRequiredEvidenceVerified \? "READY"/);
 });
 
 test("unified mobility page surfaces authoritative host-state guidance", () => {

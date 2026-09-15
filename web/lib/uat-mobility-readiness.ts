@@ -34,7 +34,11 @@ export type MobilityReadinessSnapshot = {
   ruleVersion: "niva-india-us-readiness-uat-v1";
 };
 
-export function assessAditiIndiaUsReadiness(): MobilityReadinessSnapshot {
+export function resolveHostStateReadinessGateStatus(allRequiredEvidenceVerified: boolean): MobilityReadinessGateStatus {
+  return allRequiredEvidenceVerified ? "REVIEW_REQUIRED" : "BLOCKED";
+}
+
+export function assessAditiIndiaUsReadiness(input: { allRequiredHostStateEvidenceVerified?: boolean } = {}): MobilityReadinessSnapshot {
   const dayLedger = summarizeMobilityDayLedger(ADITI_DAY_LEDGER);
   const compensation = summarizeCompensationLedger(ADITI_INDIA_US_LEDGER);
   const indiaHypotheticalTax = calculateIndiaHypotheticalTax({
@@ -44,6 +48,7 @@ export function assessAditiIndiaUsReadiness(): MobilityReadinessSnapshot {
     taxableSalaryYtd: compensation.hypoMonthlyInr * 5,
     tdsDeductedYtd: 0,
   });
+  const allRequiredHostStateEvidenceVerified = input.allRequiredHostStateEvidenceVerified === true;
 
   const gates: MobilityReadinessGate[] = [
     {
@@ -60,9 +65,11 @@ export function assessAditiIndiaUsReadiness(): MobilityReadinessSnapshot {
       id: "host-state",
       label: "US host state",
       owner: "Mobility tax",
-      status: "BLOCKED",
-      detail: "The host state is not verified, so state and local tax scope cannot be assessed.",
-      evidence: "Assignment profile",
+      status: resolveHostStateReadinessGateStatus(allRequiredHostStateEvidenceVerified),
+      detail: allRequiredHostStateEvidenceVerified
+        ? "All required host-state evidence is verified. Authoritative state selection still requires controlled review before state or local tax assessment can be enabled."
+        : "The host state evidence set is incomplete or unverified, so state and local tax scope cannot be assessed.",
+      evidence: "Assignment profile and verified host-state evidence",
     },
     {
       id: "compensation-treatment",
