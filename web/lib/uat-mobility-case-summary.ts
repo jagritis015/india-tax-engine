@@ -43,6 +43,7 @@ export type MobilityCaseSummary = {
     evidenceItems: HostStateEvidenceItem[];
     verifiedEvidenceItems: number;
     totalEvidenceItems: number;
+    allRequiredEvidenceVerified: boolean;
     blockingReason: string;
     nextAction: string;
     authoritativeState: null;
@@ -83,6 +84,17 @@ export function buildHostStateEvidenceItem(input: {
   };
 }
 
+export function areAllHostStateEvidenceItemsVerified(items: HostStateEvidenceItem[]): boolean {
+  return (
+    items.length > 0 &&
+    items.every(
+      (item) =>
+        item.status === "VERIFIED" &&
+        Boolean(item.evidenceReference && item.verifiedBy && item.verifiedAt),
+    )
+  );
+}
+
 export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
   const readiness = assessAditiIndiaUsReadiness();
   const compensation = summarizeCompensationLedger(ADITI_INDIA_US_LEDGER);
@@ -105,6 +117,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       label: "Corroborating payroll or HR assignment profile",
     }),
   ];
+  const allRequiredHostStateEvidenceVerified = areAllHostStateEvidenceItemsVerified(hostStateEvidenceItems);
   const hypotheticalTax = calculateIndiaHypotheticalTax({
     employeeId: "NVL-017",
     employeeName: "Aditi Joshi",
@@ -142,10 +155,11 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       source: "assignment-profile",
       evidenceHref: hostStateEvidenceHref,
       requiredEvidence: hostStateEvidenceItems.map((item) => item.label),
-      verificationPolicy: "An evidence item may be marked VERIFIED only when its source reference, reviewer identity, and verification timestamp are recorded.",
+      verificationPolicy: "An evidence item may be marked VERIFIED only when its source reference, reviewer identity, and verification timestamp are recorded. All required evidence items must be VERIFIED before the host-state evidence gate may progress.",
       evidenceItems: hostStateEvidenceItems,
       verifiedEvidenceItems: hostStateEvidenceItems.filter((item) => item.status === "VERIFIED").length,
       totalEvidenceItems: hostStateEvidenceItems.length,
+      allRequiredEvidenceVerified: allRequiredHostStateEvidenceVerified,
       blockingReason: "Authoritative U.S. host state is not established, so state and local tax scope cannot be assessed.",
       nextAction: "Verify all required host-state evidence before establishing the authoritative work location or enabling state-tax assessment.",
       authoritativeState: null,

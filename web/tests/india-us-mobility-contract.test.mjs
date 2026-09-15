@@ -83,6 +83,16 @@ test("host-state evidence reaches VERIFIED only with complete provenance", () =>
   assert.match(caseSummary, /An evidence item may be marked VERIFIED only when its source reference, reviewer identity, and verification timestamp are recorded/);
 });
 
+test("all required host-state evidence must be verified before the gate may progress", () => {
+  assert.match(caseSummary, /export function areAllHostStateEvidenceItemsVerified/);
+  assert.match(caseSummary, /items\.length > 0/);
+  assert.match(caseSummary, /items\.every/);
+  assert.match(caseSummary, /item\.status === "VERIFIED"/);
+  assert.match(caseSummary, /Boolean\(item\.evidenceReference && item\.verifiedBy && item\.verifiedAt\)/);
+  assert.match(caseSummary, /allRequiredEvidenceVerified: allRequiredHostStateEvidenceVerified/);
+  assert.match(caseSummary, /All required evidence items must be VERIFIED before the host-state evidence gate may progress/);
+});
+
 test("unified mobility page surfaces authoritative host-state guidance", () => {
   assert.match(page, /Authoritative action required/);
   assert.match(page, /caseSummary\.hostStateEvidence\.blockingReason/);
