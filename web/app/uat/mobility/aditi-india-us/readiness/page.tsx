@@ -7,20 +7,27 @@ export default function MobilityReadinessPage() {
   return <main style={{minHeight:"100vh",background:"#f6f8fa",fontFamily:"Inter,ui-sans-serif,system-ui,sans-serif",color:"#18212b"}}>
     <div style={{maxWidth:1180,margin:"0 auto",padding:"28px 18px 64px"}}>
       <header style={{display:"flex",justifyContent:"space-between",gap:16,alignItems:"flex-start",flexWrap:"wrap",marginBottom:22}}>
-        <div><div style={{fontSize:13,color:"#6b7480",marginBottom:6}}>India to United States mobility · Activation control</div><h1 style={{margin:"0 0 8px",fontSize:32}}>Aditi Joshi · Assignment readiness</h1><p style={{margin:0,color:"#5d6772",maxWidth:780}}>Answer every human-review blocker in the resolution workspace. Statutory calculations remain deterministic, and the unverified US monetary-tax engine stays fail closed.</p></div>
+        <div><div style={{fontSize:13,color:"#6b7480",marginBottom:6}}>India to United States mobility</div><h1 style={{margin:"0 0 8px",fontSize:32}}>Can Aditi&apos;s payroll be activated?</h1><p style={{margin:0,color:"#5d6772",maxWidth:780}}>No. Payroll is still off. Use this page to test the five manual reviews and see what must be connected before activation is possible.</p></div>
         <a href="/uat/mobility/aditi-india-us" style={{textDecoration:"none",color:"inherit",border:"1px solid #cfd6dc",background:"white",padding:"10px 13px",borderRadius:9}}>Back to mobility case</a>
       </header>
 
-      <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:12,marginBottom:18}}>
-        {[["Case",snapshot.caseId],["Status",snapshot.status],["Ready",String(snapshot.readyCount)],["Review required",String(snapshot.reviewCount)],["Blocked",String(snapshot.blockedCount)]].map(([label,value])=><article key={label} style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:15}}><div style={{fontSize:12,color:"#737d87"}}>{label}</div><strong style={{display:"block",marginTop:5}}>{value}</strong></article>)}
+      <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12,marginBottom:18}}>
+        {[["Payroll activation","OFF"],["Manual UAT review","Test below"],["US tax calculation","Not connected"],["Case",snapshot.caseId]].map(([label,value])=><article key={label} style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,padding:15}}><div style={{fontSize:13,color:"#737d87"}}>{label}</div><strong style={{display:"block",marginTop:5,fontSize:18,color:label==="Payroll activation"?"#9b3528":"#18212b"}}>{value}</strong></article>)}
       </section>
 
-      <section style={{padding:17,border:"1px solid #edc7bd",background:"#fff4f1",borderRadius:12,marginBottom:18}}><strong>Payroll activation blocked</strong><p style={{margin:"6px 0 0",color:"#6f4a42"}}>Human-review gates can now be answered below. Home, host, and shadow-payroll activation remain disabled until those reviews are resolved and a verified US monetary-tax engine is integrated.</p></section>
+      <section style={{padding:18,border:"1px solid #edc7bd",background:"#fff4f1",borderRadius:12,marginBottom:18}}>
+        <strong style={{fontSize:18}}>Why payroll is still off</strong>
+        <ol style={{margin:"10px 0 0",paddingLeft:22,color:"#6f4a42",lineHeight:1.6}}>
+          <li>The answers below are test answers stored only on this device. They do not update the live case.</li>
+          <li>A verified US federal, state and local tax calculation engine is not connected.</li>
+          <li>Until both are resolved, home, host and shadow payroll cannot be activated.</li>
+        </ol>
+      </section>
 
       <MobilityResolutionWorkbench />
 
       <section style={{background:"white",border:"1px solid #dde3e8",borderRadius:12,overflow:"hidden",marginBottom:18}}>
-        <div style={{padding:18,borderBottom:"1px solid #e6eaed"}}><h2 style={{margin:"0 0 5px"}}>Readiness gates · authoritative baseline</h2><p style={{margin:0,color:"#66717b"}}>This server-controlled baseline remains fail closed. Use the Answer link to complete its matching UAT review.</p></div>
+        <div style={{padding:18,borderBottom:"1px solid #e6eaed"}}><h2 style={{margin:"0 0 5px"}}>Live case checks</h2><p style={{margin:0,color:"#66717b"}}>These are the current source-system checks. Saving test answers above does not change them.</p></div>
         <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",minWidth:980}}><thead><tr>{["Gate","Owner","Status","Decision detail","Evidence","Action"].map((heading)=><th key={heading} style={{textAlign:"left",padding:"11px 14px",fontSize:12,color:"#707a84",background:"#fafbfc",borderBottom:"1px solid #e6eaed"}}>{heading}</th>)}</tr></thead><tbody>{snapshot.gates.map((gate)=><tr key={gate.id}><td style={cell}><strong>{gate.label}</strong></td><td style={cell}>{gate.owner}</td><td style={cell}><span style={{display:"inline-block",padding:"5px 8px",borderRadius:999,fontSize:11,fontWeight:800,background:gate.status==="READY"?"#e9f6ef":gate.status==="BLOCKED"?"#ffe8e3":"#fff3d8",color:gate.status==="READY"?"#246a4c":gate.status==="BLOCKED"?"#9b3528":"#8a5a00"}}>{gate.status.replaceAll("_"," ")}</span></td><td style={cell}>{gate.detail}</td><td style={cell}>{gate.evidence}</td><td style={cell}>{gate.status==="READY"?<span style={{color:"#246a4c",fontWeight:800}}>Complete</span>:<a href={gate.id==="immigration"?"/uat/mobility/aditi-india-us/immigration":`#resolution-${gate.id}`} style={{fontWeight:800,color:"#17634f"}}>{gate.id==="us-tax-engine"?"View blocker":gate.id==="immigration"?"Open preflight":"Answer"}</a>}</td></tr>)}</tbody></table></div>
       </section>
 
