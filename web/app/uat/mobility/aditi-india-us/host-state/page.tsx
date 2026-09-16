@@ -26,7 +26,7 @@ export default function HostStateEvidencePage() {
           <h1 className="text-3xl font-semibold tracking-tight">US host-state evidence</h1>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">This is the authoritative evidence requirement for case {summary.caseId}. Scenario host-state inputs elsewhere do not update this record.</p>
         </div>
-        <Link className="text-sm font-medium underline underline-offset-4" href="/uat/mobility/aditi-india-us">Back to unified case</Link>
+        <div className="flex flex-wrap gap-3"><Link className="rounded-lg bg-emerald-950 px-4 py-2 text-sm font-semibold text-white" href="/uat/mobility/aditi-india-us/readiness#resolution-host-state">Answer host-state evidence</Link><Link className="text-sm font-medium underline underline-offset-4" href="/uat/mobility/aditi-india-us">Back to unified case</Link></div>
       </div>
 
       <section className="rounded-xl border p-6">
@@ -39,7 +39,7 @@ export default function HostStateEvidencePage() {
 
         <div className="mt-6 rounded-lg border p-4 text-sm">
           <p className="font-semibold">Authority review</p>
-          <p className="mt-1 text-muted-foreground">Read-only controlled-review state from the authoritative case summary. This screen cannot approve or mutate host-state authority.</p>
+          <p className="mt-1 text-muted-foreground">Read-only controlled-review state from the authoritative case summary. This authoritative screen cannot approve or mutate host-state authority; use the UAT resolution workspace to enter evidence and exercise the review flow without changing production records.</p>
           <dl className="mt-4 grid gap-3 md:grid-cols-3">
             <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Review status</dt><dd className="mt-1 font-medium">{evidence.authorityReviewStatus}</dd></div>
             <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Candidate state</dt><dd className="mt-1 font-medium">{evidence.candidateState ?? "Not nominated"}</dd></div>
