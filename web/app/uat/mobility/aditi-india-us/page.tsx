@@ -62,7 +62,7 @@ export default function AditiIndiaUsMobilityPage() {
     compensation: "One global compensation ledger across salary and assignment allowances.",
     "india-hypothetical-tax": "Policy-defined stay-at-home India tax using the deterministic India engine.",
     "us-tax": "Engine not verified. Federal, state and local monetary calculations remain intentionally fail-closed.",
-    immigration: "Specialist review required. Case evidence and work authorization are required before payroll activation.",
+    immigration: "Automated evidence and expiry preflight with a case-grounded Immigration Copilot. Specialist determination remains required.",
     "social-security": "Specialist review required. The India–U.S. position remains a separate evidence-backed workstream.",
   };
 

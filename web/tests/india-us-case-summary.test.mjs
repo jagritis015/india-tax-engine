@@ -33,6 +33,7 @@ test("case summary aggregates existing mobility workstreams without enabling blo
   assert.equal(summary.workstreams.length, 7);
   assert.equal(summary.workstreams.find((item) => item.id === "host-state")?.status, "BLOCKED");
   assert.equal(summary.workstreams.find((item) => item.id === "us-tax")?.status, "BLOCKED");
+  assert.equal(summary.workstreams.find((item) => item.id === "immigration")?.href, "/uat/mobility/aditi-india-us/immigration");
 });
 
 test("case summary exposes evidence-backed SPT provenance from the authoritative day ledger", async () => {
