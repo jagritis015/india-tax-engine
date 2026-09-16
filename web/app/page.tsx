@@ -1,11 +1,11 @@
 "use client";
 
-import { Bot, Check, ChevronRight, CircleHelp, Download, FileText, FlaskConical, Globe2, IndianRupee, LayoutDashboard, LockKeyhole, Menu, Search, Send, ShieldCheck, Sparkles, TriangleAlert, Users, X } from "lucide-react";
+import { Bot, Check, ChevronRight, CircleHelp, Download, FileText, FlaskConical, Globe2, IndianRupee, LayoutDashboard, LockKeyhole, Menu, Search, Send, Settings2, ShieldCheck, Sparkles, TriangleAlert, Users, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { UAT_COMPANY, UAT_EMPLOYEES, type UatEmployee } from "../lib/uat-niva-data";
 import { answerPayrollCopilot } from "../lib/uat-payroll-copilot";
 
-type View = "overview" | "payroll" | "employees" | "scenarios" | "mobility" | "compliance" | "reports";
+type View = "overview" | "setup" | "payroll" | "employees" | "scenarios" | "mobility" | "compliance" | "reports";
 type Issue = { id:number; employee:string; employeeId:string; issue:string; severity:"High"|"Blocker"|"Medium"; value:string; resolved:boolean };
 type Employee = UatEmployee;
 type Remediation = { workState:string; correctedGross:string; confirmed:boolean };
@@ -14,6 +14,7 @@ type CopilotMessage = { role:"user"|"copilot"; text:string };
 const cash = new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0});
 const nav = [
   {id:"overview",label:"Overview",icon:LayoutDashboard},
+  {id:"setup",label:"Pay setup",icon:Settings2},
   {id:"payroll",label:"Payroll runs",icon:IndianRupee},
   {id:"employees",label:"Employees",icon:Users},
   {id:"scenarios",label:"Scenario Lab",icon:FlaskConical},
@@ -100,6 +101,7 @@ export default function Home(){
       <header className="topbar"><div><button className="mobile-menu" onClick={()=>setMenu(true)} aria-label="Open navigation"><Menu/></button><span className="eyebrow">Niva Labs payroll workspace</span></div><div className="top-actions"><button className="icon-button" onClick={()=>notify("Help centre is planned for secure UAT.")}><CircleHelp/></button><span className="avatar">AS</span></div></header>
       <div className="content">
         {view==="overview"&&<Overview issues={issues} open={open} status={status} go={go} select={openIssue} assistant={assistant} setAssistant={setAssistant} messages={copilotMessages} copilotEndRef={copilotEndRef} copilotInput={copilotInput} setCopilotInput={setCopilotInput} ask={ask} employeeCount={people.length}/>}
+        {view==="setup"&&<PaySetup/>}
         {view==="payroll"&&<Payroll issues={issues} open={open} status={status} select={openIssue} submit={submit} employeeCount={people.length}/>}
         {view==="employees"&&<Employees people={filtered} total={people.length} query={query} setQuery={setQuery} add={()=>setAdding(true)}/>} 
         {view==="scenarios"&&<Scenarios/>}
@@ -117,6 +119,7 @@ export default function Home(){
 }
 
 function Title({title,copy,action}:{title:string;copy:string;action?:React.ReactNode}){return <div className="title-row"><div><h1>{title}</h1><p>{copy}</p></div>{action}</div>}
+function PaySetup(){return <><Title title="Pay setup" copy="Configure the governed component catalogue and reusable India salary template before assigning employee amounts." action={<a className="primary-action" style={{textDecoration:"none"}} href="/uat/payroll-components">Open component catalogue <ChevronRight/></a>}/><div className="uat-notice"><Settings2/><span><strong>India component catalogue v1</strong>Fixed and variable earnings, reimbursements, employer costs, statutory deductions, recoveries, perquisites and settlement items in one governed library.</span></div><div className="summary-strip"><span><strong>32</strong><small>Defined components</small></span><span><strong>21</strong><small>In global technology template</small></span><span><strong>8</strong><small>Deterministic mappings</small></span><span><strong>GitHub</strong><small>Version-controlled master</small></span></div><div className="compliance-grid"><article className="compliance-card"><div><Settings2/><span className="employee-status ready">Available</span></div><h2>Component master</h2><p>Search every component and inspect its tax, PF, ESI, proration, CTC, gross and cash mapping.</p></article><article className="compliance-card"><div><FileText/><span className="employee-status ready">Version 1</span></div><h2>Global Technology India</h2><p>A reusable salary template for Niva Global Technologies India with 21 selected components.</p></article><article className="compliance-card"><div><IndianRupee/><span className="employee-status ready">Runnable</span></div><h2>Live mapping test</h2><p>Pass component-coded earnings into the deterministic calculator and return TDS, PF, PT, deductions and net salary.</p></article></div></>}
 function Progress({open,status,employeeCount}:{open:number;status:string;employeeCount:number}){const ready=open===0;return <section className="run-panel"><div className="panel-heading"><div><span className="section-label">Current run</span><h2>Monthly payroll · Sep 2026</h2></div><span className={`status-badge ${status==="Submitted"?"submitted":""}`}>{status}</span></div><div className="run-progress"><Step n="1" name="Inputs" note={`${employeeCount} employees`} state="complete"/><Line done/><Step n="2" name="Validation" note={`${open} exceptions`} state={ready?"complete":"current"}/><Line done={ready}/><Step n="3" name="Approval" note={status==="Submitted"?"Submitted":"Not submitted"} state={ready?"current":""}/><Line done={status==="Submitted"}/><Step n="4" name="Finalize" note="Outputs locked" state=""/></div></section>}
 function Step({n,name,note,state}:{n:string;name:string;note:string;state:string}){return <div className={`progress-step ${state}`}><span>{n}</span><strong>{name}</strong><small>{note}</small></div>}
 function Line({done=false}:{done?:boolean}){return <div className={`progress-line ${done?"complete":""}`}/>}
