@@ -50,6 +50,9 @@ export type MobilityCaseSummary = {
     authorityReviewStatus: "BLOCKED" | "REVIEW_REQUIRED" | "APPROVED";
     candidateState: string | null;
     authoritativeState: string | null;
+    reviewedBy: string | null;
+    reviewedAt: string | null;
+    approvalReference: string | null;
     stateTaxAssessmentAllowed: false;
   };
   unresolvedCompensationItems: number;
@@ -153,6 +156,9 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       authorityReviewStatus: authorityReview.status,
       candidateState: authorityReview.candidateState,
       authoritativeState: authorityReview.authoritativeState,
+      reviewedBy: authorityReview.reviewedBy,
+      reviewedAt: authorityReview.reviewedAt,
+      approvalReference: authorityReview.approvalReference,
       stateTaxAssessmentAllowed: authorityReview.stateTaxAssessmentAllowed,
     },
     unresolvedCompensationItems: compensation.unresolved,
