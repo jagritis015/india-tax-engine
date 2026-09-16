@@ -76,7 +76,7 @@ export default function AditiIndiaUsMobilityPage() {
       <section style={{background:"linear-gradient(135deg,#173b32,#0b6b52)",color:"white",borderRadius:14,padding:20,marginBottom:18}}>
         <div style={{display:"flex",justifyContent:"space-between",gap:14,alignItems:"flex-start",flexWrap:"wrap"}}>
           <div><div style={{fontSize:11,textTransform:"uppercase",letterSpacing:".1em",color:"#c2d8d1",fontWeight:800}}>Unified case control</div><h2 style={{margin:"6px 0 7px"}}>{caseSummary?.caseId ?? "MOB-NVL-017-IND-US"}</h2><p style={{margin:0,color:"#c9d9d4",maxWidth:720}}>One server-controlled case state now drives readiness, evidence, compensation and India hypothetical-tax status.</p></div>
-          <a href="/uat/mobility/aditi-india-us/readiness" style={{textDecoration:"none",background:"#d8f65a",color:"#17312a",padding:"10px 13px",borderRadius:9,fontWeight:800}}>Review activation gates</a>
+          <a href="/uat/mobility/aditi-india-us/readiness" style={{textDecoration:"none",background:"#d8f65a",color:"#17312a",padding:"10px 13px",borderRadius:9,fontWeight:800}}>Answer activation blockers</a>
         </div>
         {caseSummaryError&&<div style={{marginTop:16,padding:12,border:"1px solid #ffb4a7",background:"#7a291f",borderRadius:9}}>Case state could not be loaded. Payroll activation remains blocked and no monetary assumption has been made.</div>}
         {!caseSummary&&!caseSummaryError&&<div style={{marginTop:16,color:"#c9d9d4"}}>Loading deterministic case state…</div>}

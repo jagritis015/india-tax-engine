@@ -6,7 +6,7 @@ export default function AditiDayLedgerPage(){
     <div style={{maxWidth:1120,margin:"0 auto",padding:"28px 18px 64px"}}>
       <header style={{display:"flex",justifyContent:"space-between",gap:14,alignItems:"flex-start",flexWrap:"wrap",marginBottom:22}}>
         <div><div style={{fontSize:13,color:"#6b7480",marginBottom:6}}>India → U.S. mobility · Presence evidence</div><h1 style={{margin:"0 0 8px",fontSize:32}}>Aditi Joshi · Workday & travel ledger</h1><p style={{margin:0,color:"#5d6772",maxWidth:760}}>Physical-presence evidence feeds the deterministic U.S. Substantial Presence Test. Pending evidence stays visible and does not become a hidden tax assumption.</p></div>
-        <a href="/uat/mobility/aditi-india-us" style={{textDecoration:"none",color:"inherit",border:"1px solid #cfd6dc",background:"white",padding:"10px 13px",borderRadius:9}}>Back to mobility case</a>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><a href="/uat/mobility/aditi-india-us/readiness#resolution-location-evidence" style={{textDecoration:"none",color:"white",border:"1px solid #173b32",background:"#173b32",padding:"10px 13px",borderRadius:9,fontWeight:800}}>Answer pending evidence</a><a href="/uat/mobility/aditi-india-us" style={{textDecoration:"none",color:"inherit",border:"1px solid #cfd6dc",background:"white",padding:"10px 13px",borderRadius:9}}>Back to mobility case</a></div>
       </header>
 
       <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:12,marginBottom:18}}>
@@ -18,7 +18,7 @@ export default function AditiDayLedgerPage(){
         <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",minWidth:850}}><thead><tr>{["Date","Country","Classification","Evidence","Status","Note"].map(x=><th key={x} style={{textAlign:"left",fontSize:12,color:"#6f7983",padding:"11px 14px",background:"#fafbfc",borderBottom:"1px solid #e7ebee"}}>{x}</th>)}</tr></thead><tbody>{ADITI_DAY_LEDGER.map(item=><tr id={`evidence-${item.id}`} key={item.id} style={item.evidenceStatus==="pending"?{background:"#fff8e8",scrollMarginTop:16}:undefined}><td style={cell}>{item.date}</td><td style={cell}>{item.country}</td><td style={cell}>{item.classification}</td><td style={cell}>{item.evidence}</td><td style={cell}><strong>{item.evidenceStatus}</strong></td><td style={cell}>{item.note}</td></tr>)}</tbody></table></div>
       </section>
 
-      {summary.pendingEvidence>0 && <section style={{marginTop:18,padding:16,background:"#fff8e8",border:"1px solid #ead8ad",borderRadius:12}}><strong>Guardian finding</strong><div style={{marginTop:6,color:"#5f6872"}}>One or more physical-presence records are still pending corroboration. The day ledger remains auditable, and any residency position requiring verified evidence must remain review-required.</div></section>}
+      {summary.pendingEvidence>0 && <section style={{marginTop:18,padding:16,background:"#fff8e8",border:"1px solid #ead8ad",borderRadius:12}}><strong>Guardian finding</strong><div style={{marginTop:6,color:"#5f6872"}}>One or more physical-presence records are still pending corroboration. The day ledger remains auditable, and any residency position requiring verified evidence must remain review-required.</div><a href="/uat/mobility/aditi-india-us/readiness#resolution-location-evidence" style={{display:"inline-block",marginTop:10,fontWeight:800,color:"#755000"}}>Enter corroborating evidence →</a></section>}
     </div>
   </main>;
 }
