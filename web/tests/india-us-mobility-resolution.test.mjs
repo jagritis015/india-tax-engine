@@ -58,8 +58,8 @@ test("readiness and workstream pages route reviewers to answer controls", async 
   assert.match(readinessPage, /Answer/);
   assert.match(readinessPage, /Complete/);
   assert.doesNotMatch(readinessPage, /#resolution-india-hypothetical-tax/);
-  assert.match(workbench, /Load representative UAT answers/);
-  assert.match(workbench, /Human evidence review passed for UAT/);
+  assert.match(workbench, /Fill sample answers/);
+  assert.match(workbench, /Test form complete/);
   assert.match(workbench, /There is intentionally no manual pass control/);
   assert.match(dayLedgerPage, /Answer pending evidence/);
   assert.match(compensationPage, /Answer treatment reviews/);

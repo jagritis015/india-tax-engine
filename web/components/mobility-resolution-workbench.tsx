@@ -47,7 +47,7 @@ function GateSection({
   return <section id={id} style={{ scrollMarginTop: 20, border: "1px solid #dce2e7", borderRadius: 12, padding: 16, background: ready ? "#f5fbf7" : "white" }}>
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
       <div><h3 style={{ margin: 0, fontSize: 18 }}>{title}</h3><p style={{ margin: "5px 0 0", color: "#6b7480", fontSize: 13 }}>Owner: {owner}</p></div>
-      <span data-testid={`${id}-status`} style={{ padding: "5px 9px", borderRadius: 999, fontSize: 11, fontWeight: 800, background: ready ? "#dff3e7" : "#fff0cf", color: ready ? "#246a4c" : "#805300" }}>{ready ? "READY FOR UAT" : "ANSWERS REQUIRED"}</span>
+      <span data-testid={`${id}-status`} style={{ padding: "5px 9px", borderRadius: 999, fontSize: 11, fontWeight: 800, background: ready ? "#dff3e7" : "#fff0cf", color: ready ? "#246a4c" : "#805300" }}>{ready ? "TEST ANSWER COMPLETE" : "INPUT NEEDED"}</span>
     </div>
     <div style={{ marginTop: 14 }}>{children}</div>
     {!ready && <p style={{ margin: "12px 0 0", color: "#815200", fontSize: 13 }}>{errors[0]}</p>}
@@ -102,14 +102,14 @@ export function MobilityResolutionWorkbench() {
 
   function loadRepresentativeAnswers() {
     setDraft(JSON.parse(JSON.stringify(REPRESENTATIVE_MOBILITY_RESOLUTION)) as MobilityResolutionDraft);
-    setStorageMessage("Representative UAT answers loaded — save to keep them in this browser");
+    setStorageMessage("Sample answers loaded. Save them to keep them on this device.");
     setStorageError(false);
   }
 
   function saveDraft() {
     try {
       window.localStorage.setItem(MOBILITY_RESOLUTION_STORAGE_KEY, JSON.stringify(draft));
-      setStorageMessage(assessment.allHumanGatesReady ? "Saved — every human-review gate is Ready for UAT" : "Draft saved in this browser");
+      setStorageMessage(assessment.allHumanGatesReady ? "Saved. All five test forms are complete." : "Test draft saved on this device");
       setStorageError(false);
     } catch {
       setStorageMessage("Browser storage is unavailable; answers were not saved");
@@ -129,24 +129,24 @@ export function MobilityResolutionWorkbench() {
   return <section style={{ background: "#f7fbfa", border: "1px solid #b9d6cc", borderRadius: 14, padding: 18, marginBottom: 18 }}>
     <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
       <div style={{ maxWidth: 760 }}>
-        <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", fontWeight: 800, color: "#286552" }}>Resolution workspace</div>
-        <h2 style={{ margin: "6px 0" }}>Answer the human-review blockers</h2>
-        <p style={{ margin: 0, color: "#56636d", lineHeight: 1.5 }}>Complete the evidence and approval fields below. Answers stay only in this browser for private UAT and do not become production records or change statutory calculations.</p>
+        <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", fontWeight: 800, color: "#286552" }}>Start here</div>
+        <h2 style={{ margin: "6px 0" }}>Test the five manual reviews</h2>
+        <p style={{ margin: 0, color: "#56636d", lineHeight: 1.5 }}>Use sample answers or enter your own test values. Nothing entered here updates a real employee record or activates payroll.</p>
       </div>
       <div style={{ minWidth: 190, padding: 13, borderRadius: 10, background: assessment.allHumanGatesReady ? "#dff3e7" : "#fff0cf" }}>
-        <small style={{ color: "#5d6772" }}>Human-review progress</small>
-        <strong data-testid="human-gate-progress" style={{ display: "block", marginTop: 4, fontSize: 22 }}>{assessment.readyCount} / {assessment.totalCount} ready</strong>
+        <small style={{ color: "#5d6772" }}>Test form progress</small>
+        <strong data-testid="human-gate-progress" style={{ display: "block", marginTop: 4, fontSize: 22 }}>{assessment.readyCount} of {assessment.totalCount} complete</strong>
       </div>
     </div>
 
     <div style={{ display: "flex", gap: 9, flexWrap: "wrap", marginTop: 16 }}>
-      <button type="button" onClick={loadRepresentativeAnswers} style={secondaryButton}>Load representative UAT answers</button>
-      <button type="button" onClick={saveDraft} style={primaryButton}>Save answers in this browser</button>
-      <button type="button" onClick={resetDraft} style={secondaryButton}>Clear local answers</button>
+      <button type="button" onClick={loadRepresentativeAnswers} style={secondaryButton}>Fill sample answers</button>
+      <button type="button" onClick={saveDraft} style={primaryButton}>Save test answers on this device</button>
+      <button type="button" onClick={resetDraft} style={secondaryButton}>Clear test answers</button>
       <span role="status" style={{ alignSelf: "center", fontSize: 13, color: storageError ? "#9b3528" : "#5e6973" }}>{storageMessage}</span>
     </div>
 
-    {assessment.allHumanGatesReady && <div data-testid="human-review-passed" style={{ marginTop: 16, padding: 13, border: "1px solid #b8dcca", borderRadius: 10, background: "#eaf8ef", color: "#245f46" }}><strong>Human evidence review passed for UAT.</strong> The only remaining activation blocker is the verified U.S. monetary-tax engine.</div>}
+    {assessment.allHumanGatesReady && <div data-testid="human-review-passed" style={{ marginTop: 16, padding: 13, border: "1px solid #b8dcca", borderRadius: 10, background: "#eaf8ef", color: "#245f46" }}><strong>Test form complete.</strong> This proves the five manual review forms work. Payroll remains off because these answers are stored only on this device and the US tax calculation engine is not connected.</div>}
 
     <div style={{ display: "grid", gap: 12, marginTop: 18 }}>
       <GateSection id="resolution-location-evidence" title="1. Corroborate the pending U.S. day" owner="Mobility operations" ready={gate("location-evidence").ready} errors={gate("location-evidence").errors}>

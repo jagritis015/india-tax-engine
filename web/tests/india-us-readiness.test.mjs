@@ -42,8 +42,10 @@ test("readiness API and pages expose the controlled mobility workflow", async ()
   assert.match(route, /assessAditiIndiaUsReadiness/);
   assert.match(route, /Cache-Control/);
   assert.match(route, /deterministic-fail-closed-uat/);
-  assert.match(readinessPage, /Payroll activation blocked/);
-  assert.match(readinessPage, /Readiness gates/);
+  assert.match(readinessPage, /Why payroll is still off/);
+  assert.match(readinessPage, /Can Aditi&apos;s payroll be activated/);
+  assert.match(readinessPage, /Saving test answers above does not change them/);
+  assert.match(readinessPage, /Live case checks/);
   assert.match(casePage, /\/uat\/mobility\/aditi-india-us\/readiness/);
   assert.match(homePage, /Global mobility/);
   assert.match(homePage, /Open mobility case/);
