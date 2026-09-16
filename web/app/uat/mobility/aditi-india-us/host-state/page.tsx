@@ -45,6 +45,12 @@ export default function HostStateEvidencePage() {
             <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Candidate state</dt><dd className="mt-1 font-medium">{evidence.candidateState ?? "Not nominated"}</dd></div>
             <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Authoritative state</dt><dd className="mt-1 font-medium">{evidence.authoritativeState ?? "Not established"}</dd></div>
           </dl>
+          <p className="mt-5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Approval provenance</p>
+          <dl className="mt-3 grid gap-3 md:grid-cols-3">
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Reviewed by</dt><dd className="mt-1 font-medium">{evidence.reviewedBy ?? "Not recorded"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Reviewed at</dt><dd className="mt-1 font-medium">{evidence.reviewedAt ?? "Not recorded"}</dd></div>
+            <div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Approval reference</dt><dd className="mt-1 font-medium">{evidence.approvalReference ?? "Not recorded"}</dd></div>
+          </dl>
         </div>
 
         <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
