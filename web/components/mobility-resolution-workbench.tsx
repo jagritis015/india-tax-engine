@@ -184,6 +184,9 @@ export function MobilityResolutionWorkbench() {
       </GateSection>
 
       <GateSection id="resolution-immigration" title="4. Verify immigration and work authorization" owner="Immigration specialist" ready={gate("immigration").ready} errors={gate("immigration").errors}>
+        <div style={{ marginBottom: 13, padding: 12, border: "1px solid #c8dbd4", borderRadius: 9, background: "#f3faf7", color: "#395d51", fontSize: 13, lineHeight: 1.45 }}>
+          Run evidence, date and expiry checks in the dedicated workspace, then bring the specialist-reviewed references back to this activation gate. <a href="/uat/mobility/aditi-india-us/immigration" style={{ color: "#17634f", fontWeight: 800 }}>Open Immigration Copilot and preflight</a>
+        </div>
         <div style={grid}>
           <TextField label="Visa category" value={draft.immigration.visaCategory} onChange={(value) => update("immigration", "visaCategory", value)} placeholder="For example, L-1 or H-1B" />
           <TextField label="Work-authorization evidence reference" value={draft.immigration.workAuthorizationReference} onChange={(value) => update("immigration", "workAuthorizationReference", value)} />

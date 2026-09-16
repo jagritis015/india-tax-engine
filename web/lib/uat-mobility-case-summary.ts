@@ -171,7 +171,7 @@ export function buildAditiIndiaUsCaseSummary(): MobilityCaseSummary {
       { id: "compensation", label: "Global compensation", status: gate("compensation-treatment"), href: "/uat/mobility/aditi-india-us/compensation" },
       { id: "india-hypothetical-tax", label: "India hypothetical tax", status: gate("india-hypothetical-tax"), href: "/uat/mobility/aditi-india-us/hypothetical-tax" },
       { id: "us-tax", label: "US monetary tax", status: gate("us-tax-engine"), href: "/uat/mobility/aditi-india-us/readiness#resolution-us-tax-engine" },
-      { id: "immigration", label: "Immigration", status: gate("immigration"), href: "/uat/mobility/aditi-india-us/readiness#resolution-immigration" },
+      { id: "immigration", label: "Immigration", status: gate("immigration"), href: "/uat/mobility/aditi-india-us/immigration" },
       { id: "social-security", label: "Social security", status: gate("social-security"), href: "/uat/mobility/aditi-india-us/readiness#resolution-social-security" },
     ],
     ruleVersion: "niva-india-us-case-summary-uat-v1",
