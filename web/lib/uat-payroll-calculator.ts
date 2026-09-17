@@ -25,6 +25,12 @@ export type UatPayrollCalculationResult = {
   grossSalary: number;
   projectedSalary: number | null;
   taxableIncome: number | null;
+  incomeTaxBeforeSurcharge: number | null;
+  surchargeRatePercent: number | null;
+  surchargeBeforeRelief: number | null;
+  surchargeMarginalRelief: number | null;
+  surcharge: number | null;
+  cess: number | null;
   annualTaxLiability: number | null;
   tds: number | null;
   employeePf: number | null;
@@ -38,7 +44,6 @@ export type UatPayrollCalculationResult = {
 const STANDARD_DEDUCTION = 75_000;
 const REBATE_THRESHOLD = 1_200_000;
 const MAX_REBATE = 60_000;
-const SURCHARGE_THRESHOLD = 5_000_000;
 const PF_WAGE_CEILING = 15_000;
 const KARNATAKA_PT_THRESHOLD = 25_000;
 const KARNATAKA_NORMAL_MONTHLY_PT = 200;
@@ -73,11 +78,66 @@ function slabTaxPaise(taxableIncome: number): bigint {
   return taxPaise;
 }
 
-function roundTaxToNearestTenRupees(taxAfterRebatePaise: bigint): number {
-  // Add 4% cess exactly as a rational, then ignore paise, matching the Python engine.
-  const wholeRupees = Number((taxAfterRebatePaise * 104n) / 10_000n);
+function roundTaxToNearestTenRupees(taxIncludingCessPaise: bigint): number {
+  const wholeRupees = Number(taxIncludingCessPaise / 100n);
   const remainder = wholeRupees % 10;
   return remainder >= 5 ? wholeRupees + (10 - remainder) : wholeRupees - remainder;
+}
+
+function roundPaiseToRupees(value: bigint): number {
+  return Number((value + 50n) / 100n);
+}
+
+function taxAfterRebatePaise(taxableIncome: number): bigint {
+  const slabTax = slabTaxPaise(taxableIncome);
+  if (taxableIncome <= REBATE_THRESHOLD) {
+    const rebate = slabTax < BigInt(MAX_REBATE * 100) ? slabTax : BigInt(MAX_REBATE * 100);
+    return slabTax - rebate;
+  }
+  const excessIncomePaise = BigInt((taxableIncome - REBATE_THRESHOLD) * 100);
+  const rebateMarginalRelief = slabTax > excessIncomePaise ? slabTax - excessIncomePaise : 0n;
+  return slabTax - rebateMarginalRelief;
+}
+
+function surchargeRatePercent(taxableIncome: number): number {
+  if (taxableIncome <= 5_000_000) return 0;
+  if (taxableIncome <= 10_000_000) return 10;
+  if (taxableIncome <= 20_000_000) return 15;
+  return 25;
+}
+
+function precedingSurchargeThreshold(taxableIncome: number): number | null {
+  if (taxableIncome > 20_000_000) return 20_000_000;
+  if (taxableIncome > 10_000_000) return 10_000_000;
+  if (taxableIncome > 5_000_000) return 5_000_000;
+  return null;
+}
+
+function surchargeAtIncomePaise(taxableIncome: number, taxAfterRebate: bigint) {
+  const ratePercent = surchargeRatePercent(taxableIncome);
+  const beforeRelief = (taxAfterRebate * BigInt(ratePercent)) / 100n;
+  const threshold = precedingSurchargeThreshold(taxableIncome);
+  let marginalRelief = 0n;
+
+  if (threshold !== null) {
+    const thresholdTax = taxAfterRebatePaise(threshold);
+    const thresholdRate = surchargeRatePercent(threshold);
+    const thresholdSurcharge = (thresholdTax * BigInt(thresholdRate)) / 100n;
+    const maximumTaxAndSurcharge = thresholdTax
+      + thresholdSurcharge
+      + BigInt((taxableIncome - threshold) * 100);
+    const actualTaxAndSurcharge = taxAfterRebate + beforeRelief;
+    if (actualTaxAndSurcharge > maximumTaxAndSurcharge) {
+      marginalRelief = actualTaxAndSurcharge - maximumTaxAndSurcharge;
+    }
+  }
+
+  return {
+    ratePercent,
+    beforeRelief,
+    marginalRelief,
+    surcharge: beforeRelief - marginalRelief,
+  };
 }
 
 function roundHalfUpDivision(numerator: number, denominator: number): number {
@@ -95,6 +155,12 @@ function review(input: UatPayrollCalculationInput, grossSalary: number, reason: 
     grossSalary,
     projectedSalary: null,
     taxableIncome: null,
+    incomeTaxBeforeSurcharge: null,
+    surchargeRatePercent: null,
+    surchargeBeforeRelief: null,
+    surchargeMarginalRelief: null,
+    surcharge: null,
+    cess: null,
     annualTaxLiability: null,
     tds: null,
     employeePf: null,
@@ -113,8 +179,9 @@ function supportedAssumptions() {
     "New tax regime, resident individual",
     "Karnataka Professional Tax",
     "Standard employee PF at 12% with Rs 15,000 wage ceiling",
-    "No previous-employer credit, other income, house-property adjustment, special-rate income, or evidence-sensitive deductions",
-    "Taxable projected income must remain at or below Rs 50,00,000 because surcharge parity is not enabled in this UAT slice",
+    "Salary income only; no previous-employer credit, other income, house-property adjustment, special-rate income, or evidence-sensitive deductions",
+    "New-regime surcharge at 10%, 15%, or 25% with marginal relief at Rs 50 lakh, Rs 1 crore, and Rs 2 crore",
+    "Health and Education Cess at 4% on income tax plus surcharge after marginal relief",
   ];
 }
 
@@ -154,23 +221,11 @@ export function calculateSupportedUatPayroll(input: UatPayrollCalculationInput):
     + grossSalary * REMAINING_MONTHS_INCLUDING_SEPTEMBER;
   const taxableIncome = Math.max(0, projectedSalary - STANDARD_DEDUCTION);
 
-  if (taxableIncome > SURCHARGE_THRESHOLD) {
-    return review(input, grossSalary, "Projected taxable income exceeds the supported no-surcharge UAT range.");
-  }
-
-  const slabTax = slabTaxPaise(taxableIncome);
-  let rebatePaise = 0n;
-  let marginalReliefPaise = 0n;
-
-  if (taxableIncome <= REBATE_THRESHOLD) {
-    rebatePaise = slabTax < BigInt(MAX_REBATE * 100) ? slabTax : BigInt(MAX_REBATE * 100);
-  } else {
-    const excessIncomePaise = BigInt((taxableIncome - REBATE_THRESHOLD) * 100);
-    if (slabTax > excessIncomePaise) marginalReliefPaise = slabTax - excessIncomePaise;
-  }
-
-  const taxAfterRebatePaise = slabTax - rebatePaise - marginalReliefPaise;
-  const annualTaxLiability = roundTaxToNearestTenRupees(taxAfterRebatePaise);
+  const incomeTaxPaise = taxAfterRebatePaise(taxableIncome);
+  const surchargeResult = surchargeAtIncomePaise(taxableIncome, incomeTaxPaise);
+  const taxPlusSurchargePaise = incomeTaxPaise + surchargeResult.surcharge;
+  const cessPaise = (taxPlusSurchargePaise * 4n) / 100n;
+  const annualTaxLiability = roundTaxToNearestTenRupees(taxPlusSurchargePaise + cessPaise);
   const remainingTax = Math.max(0, annualTaxLiability - numericInputs.tdsDeductedYtd);
   const tds = roundHalfUpDivision(remainingTax, REMAINING_MONTHS_INCLUDING_SEPTEMBER);
 
@@ -188,6 +243,12 @@ export function calculateSupportedUatPayroll(input: UatPayrollCalculationInput):
     grossSalary,
     projectedSalary,
     taxableIncome,
+    incomeTaxBeforeSurcharge: roundPaiseToRupees(incomeTaxPaise),
+    surchargeRatePercent: surchargeResult.ratePercent,
+    surchargeBeforeRelief: roundPaiseToRupees(surchargeResult.beforeRelief),
+    surchargeMarginalRelief: roundPaiseToRupees(surchargeResult.marginalRelief),
+    surcharge: roundPaiseToRupees(surchargeResult.surcharge),
+    cess: roundPaiseToRupees(cessPaise),
     annualTaxLiability,
     tds,
     employeePf,

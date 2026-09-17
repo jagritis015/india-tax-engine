@@ -61,14 +61,15 @@ test("statutory boundary scenario proves PT and PF threshold behavior", async ()
   assert.equal(abovePf?.employeePf, 1_800);
 });
 
-test("fail-closed pack blocks invalid values and reviews unsupported or unresolved records", async () => {
+test("high-earner and fail-closed pack calculates surcharge while blocking unresolved records", async () => {
   const { runPayrollScenario } = await vite.ssrLoadModule("/lib/uat-scenario-pack.ts");
   const run = runPayrollScenario("fail-closed-controls-4");
 
-  assert.equal(run.actual.calculatedCount, 0);
-  assert.equal(run.actual.reviewCount, 3);
+  assert.equal(run.actual.calculatedCount, 1);
+  assert.equal(run.actual.reviewCount, 2);
   assert.equal(run.actual.blockedCount, 1);
-  assert.match(run.rows.find((row) => row.employeeId === "UAT-F01")?.reviewReason ?? "", /surcharge/);
+  assert.equal(run.rows.find((row) => row.employeeId === "UAT-F01")?.status, "CALCULATED");
+  assert.equal(run.rows.find((row) => row.employeeId === "UAT-F01")?.surchargeRatePercent, 10);
   assert.match(run.rows.find((row) => row.employeeId === "UAT-F02")?.reviewReason ?? "", /non-negative/);
 });
 

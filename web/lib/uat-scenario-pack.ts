@@ -305,11 +305,11 @@ function failClosedInputs(): PayrollScenarioInput[] {
   const highEarner = makeInput({
     scenarioId: "fail-closed-controls-4",
     employeeId: "UAT-F01",
-    employeeName: "Unsupported surcharge case",
+    employeeName: "High earner surcharge case",
     role: "Sales Manager",
     gross: 500_000,
     taxableSalaryYtd: 2_000_000,
-    eventType: "Projected taxable income exceeds the verified no-surcharge range",
+    eventType: "High earner must calculate with surcharge and marginal relief",
   });
   const invalidNegative = makeInput({
     scenarioId: "fail-closed-controls-4",
@@ -359,6 +359,12 @@ function reviewFromSource(input: PayrollScenarioInput): UatPayrollCalculationRes
     grossSalary: input.basicSalary + input.hra + input.specialAllowance + (input.bonus ?? 0) + (input.commission ?? 0) + (input.otherTaxableEarnings ?? 0),
     projectedSalary: null,
     taxableIncome: null,
+    incomeTaxBeforeSurcharge: null,
+    surchargeRatePercent: null,
+    surchargeBeforeRelief: null,
+    surchargeMarginalRelief: null,
+    surcharge: null,
+    cess: null,
     annualTaxLiability: null,
     tds: null,
     employeePf: null,
@@ -430,7 +436,7 @@ const payrollLabels: Record<PayrollScenarioId, { label: string; description: str
   "new-joiner-proration-6": { label: "Six new joiners", description: "Prorated September salary inputs for employees joining on different dates with no prior salary year to date." },
   "statutory-boundaries-7": { label: "PT, PF and rebate boundaries", description: "Exact threshold tests for Karnataka Professional Tax, the PF wage ceiling, rebate and marginal relief behavior." },
   "tds-true-up-4": { label: "TDS year-to-date true up", description: "Same current salary with different prior TDS credits to prove the remaining liability changes deterministically." },
-  "fail-closed-controls-4": { label: "Fail-closed payroll controls", description: "Unsupported surcharge, negative input, review-required master and blocked work-location cases." },
+  "fail-closed-controls-4": { label: "High-earner and fail-closed controls", description: "Calculated surcharge, negative input, review-required master and blocked work-location cases." },
 };
 
 const EXPECTED_PAYROLL_SUMMARIES: Record<PayrollScenarioId, PayrollSummary> = {
@@ -439,7 +445,7 @@ const EXPECTED_PAYROLL_SUMMARIES: Record<PayrollScenarioId, PayrollSummary> = {
   "new-joiner-proration-6": { employeeCount: 6, calculatedCount: 6, reviewCount: 0, blockedCount: 0, grossPayroll: 352_500, totalTds: 0, totalEmployeePf: 10_800, totalProfessionalTax: 1_200, totalDeductions: 12_000, netPayable: 340_500 },
   "statutory-boundaries-7": { employeeCount: 7, calculatedCount: 7, reviewCount: 0, blockedCount: 0, grossPayroll: 489_999, totalTds: 149, totalEmployeePf: 12_360, totalProfessionalTax: 1_200, totalDeductions: 13_709, netPayable: 476_290 },
   "tds-true-up-4": { employeeCount: 4, calculatedCount: 4, reviewCount: 0, blockedCount: 0, grossPayroll: 750_000, totalTds: 93_214, totalEmployeePf: 7_200, totalProfessionalTax: 800, totalDeductions: 101_214, netPayable: 648_786 },
-  "fail-closed-controls-4": { employeeCount: 4, calculatedCount: 0, reviewCount: 3, blockedCount: 1, grossPayroll: 0, totalTds: 0, totalEmployeePf: 0, totalProfessionalTax: 0, totalDeductions: 0, netPayable: 0 },
+  "fail-closed-controls-4": { employeeCount: 4, calculatedCount: 1, reviewCount: 2, blockedCount: 1, grossPayroll: 500_000, totalTds: 197_340, totalEmployeePf: 1_800, totalProfessionalTax: 200, totalDeductions: 199_340, netPayable: 300_660 },
 };
 
 function summaryChecks(expected: PayrollSummary, actual: PayrollSummary): ScenarioCheck[] {
