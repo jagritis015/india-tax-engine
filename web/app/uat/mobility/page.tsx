@@ -2,10 +2,11 @@
 import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  buildMobilityCaseFromPayrollEmployee,
   daysToExpiry,
-  type MobilityCase,
   type ReadinessStatus,
 } from "@/lib/uat-global-mobility";
+import { UAT_EMPLOYEES } from "@/lib/uat-niva-data";
 import { useMobilitySession } from "./session-store";
 
 const statusLabel = (status: ReadinessStatus) => status.replaceAll("_", " ");
@@ -19,8 +20,10 @@ export default function GlobalMobilityQueue() {
   const [lifecycle, setLifecycle] = useState<"All" | "Active">("All");
   const [expanded, setExpanded] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const [createError, setCreateError] = useState("");
   const [draft, setDraft] = useState({
-    employeeName: "",
+    employeeId: "",
+    employeeSearch: "",
     hostCountry: "",
     assignmentType: "Short-term",
     owner: "Meera Shah",
@@ -54,35 +57,42 @@ export default function GlobalMobilityQueue() {
   };
   function createCase(e: React.FormEvent) {
     e.preventDefault();
-    if (!draft.employeeName.trim() || !draft.hostCountry.trim()) return;
+    const employee = UAT_EMPLOYEES.find((item) => item.id === draft.employeeId);
+    if (!employee) {
+      setCreateError("Select an employee from the Niva Labs payroll list.");
+      return;
+    }
+    if (cases.some((item) => item.employeeId === employee.id)) {
+      setCreateError(`${employee.name} already has a mobility case in this session.`);
+      return;
+    }
+    if (!draft.hostCountry.trim()) {
+      setCreateError("Enter the host country.");
+      return;
+    }
     const n = cases.length + 1;
-    const item: MobilityCase = {
-      caseId: `MOB-UAT-NEW-${n}`,
-      employeeId: `NVL-UAT-${100 + n}`,
-      employeeName: draft.employeeName.trim(),
-      homeCountry: "India",
-      hostCountry: draft.hostCountry.trim(),
-      assignmentType: draft.assignmentType as MobilityCase["assignmentType"],
-      lifecycleStatus: "Pre-assignment",
-      startDate: "2026-10-01",
-      endDate: "2027-03-31",
+    const item = buildMobilityCaseFromPayrollEmployee({
+      employee,
+      hostCountry: draft.hostCountry,
+      assignmentType: draft.assignmentType as Parameters<
+        typeof buildMobilityCaseFromPayrollEmployee
+      >[0]["assignmentType"],
       owner: draft.owner,
-      payrollModel: "Standard",
-      workAuthorizationExpiry: null,
-      totalizationAgreement: false,
-      dtaaExists: false,
-      defaultDayThreshold: 183,
-      currentHostDays: 0,
-      compensationHomePct: 100,
-      compensationHostPct: 0,
-      unsupportedCalculations: [
-        "Corridor tax and immigration rules are not configured for this new UAT case.",
-      ],
-      lastUpdated: "Current session",
-    };
+      ordinal: n,
+    });
     addCase(item);
+    setCreateError("");
+    setDraft((current) => ({
+      ...current,
+      employeeId: "",
+      employeeSearch: "",
+      hostCountry: "",
+    }));
     setShowCreate(false);
   }
+  const availableEmployees = UAT_EMPLOYEES.filter(
+    (employee) => !cases.some((item) => item.employeeId === employee.id),
+  );
   const corridors = [
       "All",
       ...new Set(cases.map((c) => `${c.homeCountry} → ${c.hostCountry}`)),
@@ -117,7 +127,6 @@ export default function GlobalMobilityQueue() {
           <strong>UAT session data</strong>
           <span>
             Changes are private to this browser session and reset on reload. No
-            production records are created.
           </span>
           <button
             onClick={() => {
@@ -135,14 +144,43 @@ export default function GlobalMobilityQueue() {
             <h2 style={h2}>Create synthetic mobility case</h2>
             <div style={formGrid}>
               <label>
-                Employee
+                Employee from Niva Labs payroll
                 <input
-                  value={draft.employeeName}
-                  onChange={(e) =>
-                    setDraft((x) => ({ ...x, employeeName: e.target.value }))
-                  }
+                  list="niva-payroll-employees"
+                  placeholder="Search employee name or ID"
+                  value={draft.employeeSearch}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const match = availableEmployees.find(
+                      (employee) =>
+                        value === `${employee.name} · ${employee.id}` ||
+                        value.toLowerCase() === employee.name.toLowerCase() ||
+                        value.toUpperCase() === employee.id,
+                    );
+                    setDraft((current) => ({
+                      ...current,
+                      employeeSearch: value,
+                      employeeId: match?.id ?? "",
+                    }));
+                    setCreateError("");
+                  }}
                   style={input}
                 />
+                <datalist id="niva-payroll-employees">
+                  {availableEmployees.map((employee) => (
+                    <option
+                      key={employee.id}
+                      value={`${employee.name} · ${employee.id}`}
+                    >
+                      {employee.role}
+                    </option>
+                  ))}
+                </datalist>
+                {draft.employeeId && (
+                  <small style={small}>
+                    Linked payroll employee: {draft.employeeId}
+                  </small>
+                )}
               </label>
               <label>
                 Host country
@@ -191,6 +229,7 @@ export default function GlobalMobilityQueue() {
                 </select>
               </label>
             </div>
+            {createError && <div role="alert" style={formError}>{createError}</div>}
             <button style={primary}>Add to this session</button>
           </form>
         )}
@@ -486,6 +525,16 @@ const shell = {
     gap: 11,
     marginBottom: 14,
   } as const,
+  formError = {
+    marginBottom: 12,
+    padding: "10px 12px",
+    border: "1px solid #efc4bd",
+    borderRadius: 8,
+    background: "#fff4f2",
+    color: "#8a3025",
+    fontSize: 13,
+    fontWeight: 700,
+  } as const,
   input = {
     width: "100%",
     boxSizing: "border-box",
@@ -546,4 +595,3 @@ const shell = {
     textDecoration: "none",
   } as const,
   empty = { padding: 30, textAlign: "center", color: "#66736d" } as const;
-
