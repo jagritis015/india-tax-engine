@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { MobilitySessionProvider } from "./uat/mobility/session-store";
 
 export const metadata: Metadata = {
   title: "India Payroll OS",
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        <MobilitySessionProvider>{children}</MobilitySessionProvider>
         <a
           href="/status"
           aria-label="Open build, accuracy and UAT status"

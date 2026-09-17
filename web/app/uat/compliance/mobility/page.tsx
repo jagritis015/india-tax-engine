@@ -1,49 +1,40 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import {
-  applyObligationChangeAndEvaluateReadiness,
-  evaluateMobilityReadiness,
-  MOBILITY_CASE_FIXTURES,
-  OBLIGATION_FIXTURES,
   type ObligationRecord,
 } from "@/lib/uat-global-mobility";
+import { useMobilitySession } from "../../mobility/session-store";
 
 export default function MobilityCompliance() {
   const requested =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("caseId")
       : null;
-  const initial =
-    MOBILITY_CASE_FIXTURES.find((x) => x.caseId === requested) ??
-    MOBILITY_CASE_FIXTURES[0];
-  const [caseRecord, setCaseRecord] = useState(initial);
-  const [obligations, setObligations] = useState(OBLIGATION_FIXTURES);
-  const [evaluation, setEvaluation] = useState(() =>
-    evaluateMobilityReadiness(initial, OBLIGATION_FIXTURES),
+  const { cases, obligations, evaluations, applyObligationChange } =
+    useMobilitySession();
+  const [selectedCaseId, setSelectedCaseId] = useState(
+    cases.find((x) => x.caseId === requested)?.caseId ?? cases[0].caseId,
   );
+  const caseRecord =
+    cases.find((item) => item.caseId === selectedCaseId) ?? cases[0];
+  const evaluation = evaluations[caseRecord.caseId];
   const [message, setMessage] = useState("");
   function selectCase(id: string) {
-    const next = MOBILITY_CASE_FIXTURES.find((x) => x.caseId === id)!;
-    setCaseRecord(next);
-    setEvaluation(evaluateMobilityReadiness(next, obligations));
+    setSelectedCaseId(id);
     setMessage("");
   }
   function update(item: ObligationRecord, status: ObligationRecord["status"]) {
-    const outcome = applyObligationChangeAndEvaluateReadiness(
-      { caseRecord, obligations, evaluation },
-      {
+    const outcome = applyObligationChange({
         caseId: caseRecord.caseId,
         obligationId: item.obligationId,
         expectedRevision: item.revision,
         change: { status },
-      },
-    );
+      });
     if ("error" in outcome) {
       setMessage(outcome.error);
       return;
     }
-    setObligations(outcome.result.obligations);
-    setEvaluation(outcome.result.evaluation);
     setMessage(
       `Combined operation succeeded. Obligation revision ${item.revision + 1}; completed readiness evaluation ${outcome.result.evaluation.evaluationVersion}.`,
     );
@@ -70,7 +61,7 @@ export default function MobilityCompliance() {
           }}
         >
           <div>
-            <a
+            <Link
               href="/uat/mobility"
               style={{
                 color: "#0b6b52",
@@ -79,19 +70,19 @@ export default function MobilityCompliance() {
               }}
             >
               ← Global mobility
-            </a>
+            </Link>
             <h1>Mobility compliance obligations</h1>
             <p style={{ color: "#62706a" }}>
-              Compliance owns changes. Mobility reads this same shared
-              obligation collection.
+              Compliance owns changes. Both routes use the root mobility
+              session store and its latest completed readiness evaluation.
             </p>
           </div>
-          <a
+          <Link
             href={`/uat/mobility/case?caseId=${encodeURIComponent(caseRecord.caseId)}`}
             style={secondary}
           >
             Open case
-          </a>
+          </Link>
         </header>
         <div style={notice}>
           <strong>UAT session data</strong>
@@ -107,7 +98,7 @@ export default function MobilityCompliance() {
               onChange={(e) => selectCase(e.target.value)}
               style={input}
             >
-              {MOBILITY_CASE_FIXTURES.map((x) => (
+              {cases.map((x) => (
                 <option key={x.caseId} value={x.caseId}>
                   {x.employeeName} · {x.homeCountry} → {x.hostCountry}
                 </option>
@@ -232,3 +223,4 @@ const panel = {
     borderRadius: 9,
     marginTop: 14,
   } as const;
+

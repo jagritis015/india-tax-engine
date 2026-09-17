@@ -1,21 +1,22 @@
 "use client";
 import { Fragment, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   daysToExpiry,
-  MOBILITY_CASE_FIXTURES,
-  MOBILITY_EVALUATIONS,
   type MobilityCase,
   type ReadinessStatus,
 } from "@/lib/uat-global-mobility";
+import { useMobilitySession } from "./session-store";
 
 const statusLabel = (status: ReadinessStatus) => status.replaceAll("_", " ");
 export default function GlobalMobilityQueue() {
-  const [cases, setCases] = useState(MOBILITY_CASE_FIXTURES);
+  const { cases, evaluations, addCase, resetSession } = useMobilitySession();
   const [query, setQuery] = useState("");
   const [corridor, setCorridor] = useState("All");
   const [assignment, setAssignment] = useState("All");
   const [owner, setOwner] = useState("All");
   const [status, setStatus] = useState<"All" | ReadinessStatus>("All");
+  const [lifecycle, setLifecycle] = useState<"All" | "Active">("All");
   const [expanded, setExpanded] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [draft, setDraft] = useState({
@@ -24,24 +25,6 @@ export default function GlobalMobilityQueue() {
     assignmentType: "Short-term",
     owner: "Meera Shah",
   });
-  const evaluations = useMemo(
-    () =>
-      Object.fromEntries(
-        cases.map((c) => [
-          c.caseId,
-          MOBILITY_EVALUATIONS[c.caseId] ?? {
-            computedStatus: "BLOCKED",
-            blockers: [
-              {
-                reason:
-                  "New UAT case requires workstream setup before readiness can be evaluated.",
-              },
-            ],
-          },
-        ]),
-      ),
-    [cases],
-  );
   const rows = useMemo(
     () =>
       cases.filter((c) => {
@@ -52,10 +35,11 @@ export default function GlobalMobilityQueue() {
             `${c.homeCountry} → ${c.hostCountry}` === corridor) &&
           (assignment === "All" || c.assignmentType === assignment) &&
           (owner === "All" || c.owner === owner) &&
+          (lifecycle === "All" || c.lifecycleStatus === lifecycle) &&
           (status === "All" || e.computedStatus === status)
         );
       }),
-    [cases, evaluations, query, corridor, assignment, owner, status],
+    [cases, evaluations, query, corridor, assignment, owner, lifecycle, status],
   );
   const counts = {
     ACTIVE: cases.filter((c) => c.lifecycleStatus === "Active").length,
@@ -96,7 +80,7 @@ export default function GlobalMobilityQueue() {
       ],
       lastUpdated: "Current session",
     };
-    setCases((x) => [item, ...x]);
+    addCase(item);
     setShowCreate(false);
   }
   const corridors = [
@@ -124,9 +108,9 @@ export default function GlobalMobilityQueue() {
             >
               Create mobility case
             </button>
-            <a style={secondary} href="/">
+            <Link style={secondary} href="/">
               Back to Payroll OS
-            </a>
+            </Link>
           </div>
         </header>
         <div style={notice}>
@@ -137,8 +121,9 @@ export default function GlobalMobilityQueue() {
           </span>
           <button
             onClick={() => {
-              setCases(MOBILITY_CASE_FIXTURES);
+              resetSession();
               setStatus("All");
+              setLifecycle("All");
             }}
             style={linkButton}
           >
@@ -209,9 +194,22 @@ export default function GlobalMobilityQueue() {
             <button style={primary}>Add to this session</button>
           </form>
         )}
+        <div style={dimensionLabel}>Assignment lifecycle</div>
+        <section style={{ ...countGrid, gridTemplateColumns: "minmax(180px, 1fr)" }}>
+          <button
+            onClick={() => setLifecycle(lifecycle === "Active" ? "All" : "Active")}
+            style={{
+              ...countCard,
+              borderColor: lifecycle === "Active" ? "#0b6b52" : "#dfe6e3",
+            }}
+          >
+            <span>Active assignments</span>
+            <strong>{counts.ACTIVE}</strong>
+          </button>
+        </section>
+        <div style={dimensionLabel}>Readiness</div>
         <section style={countGrid}>
           {[
-            { label: "Active", value: counts.ACTIVE, filter: "All" as const },
             {
               label: "Review required",
               value: counts.REVIEW_REQUIRED,
@@ -358,12 +356,12 @@ export default function GlobalMobilityQueue() {
                         <td style={td}>{c.owner}</td>
                         <td style={td}>{c.lastUpdated.slice(0, 10)}</td>
                         <td style={td}>
-                          <a
+                          <Link
                             href={`/uat/mobility/case?caseId=${encodeURIComponent(c.caseId)}`}
                             style={openLink}
                           >
                             Open case
-                          </a>
+                          </Link>
                         </td>
                       </tr>
                       {expanded === c.caseId && (
@@ -461,6 +459,14 @@ const shell = {
     gap: 12,
     marginBottom: 16,
   } as const,
+  dimensionLabel = {
+    margin: "4px 0 8px",
+    color: "#66736d",
+    fontSize: 13,
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: ".06em",
+  } as const,
   countCard = {
     textAlign: "left",
     padding: 16,
@@ -540,3 +546,4 @@ const shell = {
     textDecoration: "none",
   } as const,
   empty = { padding: 30, textAlign: "center", color: "#66736d" } as const;
+
