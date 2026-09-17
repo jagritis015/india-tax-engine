@@ -21,6 +21,7 @@ export default function GlobalMobilityQueue() {
   const [expanded, setExpanded] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [employeeSuggestionsOpen, setEmployeeSuggestionsOpen] = useState(false);
   const [draft, setDraft] = useState({
     employeeId: "",
     employeeSearch: "",
@@ -93,6 +94,17 @@ export default function GlobalMobilityQueue() {
   const availableEmployees = UAT_EMPLOYEES.filter(
     (employee) => !cases.some((item) => item.employeeId === employee.id),
   );
+  const employeeMatches = useMemo(() => {
+    const term = draft.employeeSearch.trim().toLowerCase();
+    if (term.length < 2 || draft.employeeId) return [];
+    return availableEmployees
+      .filter((employee) =>
+        `${employee.name} ${employee.id} ${employee.role}`
+          .toLowerCase()
+          .includes(term),
+      )
+      .slice(0, 6);
+  }, [availableEmployees, draft.employeeId, draft.employeeSearch]);
   const corridors = [
       "All",
       ...new Set(cases.map((c) => `${c.homeCountry} → ${c.hostCountry}`)),
@@ -143,39 +155,68 @@ export default function GlobalMobilityQueue() {
           <form onSubmit={createCase} style={panel}>
             <h2 style={h2}>Create synthetic mobility case</h2>
             <div style={formGrid}>
-              <label>
+              <label style={{ position: "relative" }}>
                 Employee from Niva Labs payroll
                 <input
-                  list="niva-payroll-employees"
                   placeholder="Search employee name or ID"
                   value={draft.employeeSearch}
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded={employeeSuggestionsOpen && employeeMatches.length > 0}
+                  aria-controls="niva-payroll-employee-suggestions"
                   onChange={(e) => {
                     const value = e.target.value;
-                    const match = availableEmployees.find(
-                      (employee) =>
-                        value === `${employee.name} · ${employee.id}` ||
-                        value.toLowerCase() === employee.name.toLowerCase() ||
-                        value.toUpperCase() === employee.id,
-                    );
                     setDraft((current) => ({
                       ...current,
                       employeeSearch: value,
-                      employeeId: match?.id ?? "",
+                      employeeId: "",
                     }));
+                    setEmployeeSuggestionsOpen(value.trim().length >= 2);
                     setCreateError("");
                   }}
+                  onFocus={() =>
+                    setEmployeeSuggestionsOpen(
+                      draft.employeeSearch.trim().length >= 2 && !draft.employeeId,
+                    )
+                  }
+                  onBlur={() => setEmployeeSuggestionsOpen(false)}
                   style={input}
                 />
-                <datalist id="niva-payroll-employees">
-                  {availableEmployees.map((employee) => (
-                    <option
-                      key={employee.id}
-                      value={`${employee.name} · ${employee.id}`}
-                    >
-                      {employee.role}
-                    </option>
-                  ))}
-                </datalist>
+                {employeeSuggestionsOpen && employeeMatches.length > 0 && (
+                  <div
+                    id="niva-payroll-employee-suggestions"
+                    role="listbox"
+                    style={suggestionList}
+                  >
+                    {employeeMatches.map((employee) => (
+                      <button
+                        key={employee.id}
+                        type="button"
+                        role="option"
+                        aria-selected={false}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          setDraft((current) => ({
+                            ...current,
+                            employeeSearch: employee.name,
+                            employeeId: employee.id,
+                          }));
+                          setEmployeeSuggestionsOpen(false);
+                          setCreateError("");
+                        }}
+                        style={suggestionOption}
+                      >
+                        <strong>{employee.name}</strong>
+                        <span>{employee.id} · {employee.role}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {employeeSuggestionsOpen &&
+                  draft.employeeSearch.trim().length >= 2 &&
+                  employeeMatches.length === 0 && (
+                    <div style={suggestionEmpty}>No matching payroll employee</div>
+                  )}
                 {draft.employeeId && (
                   <small style={small}>
                     Linked payroll employee: {draft.employeeId}
@@ -534,6 +575,45 @@ const shell = {
     color: "#8a3025",
     fontSize: 13,
     fontWeight: 700,
+  } as const,
+  suggestionList = {
+    position: "absolute",
+    zIndex: 30,
+    top: "calc(100% - 2px)",
+    left: 0,
+    right: 0,
+    maxHeight: 280,
+    overflowY: "auto",
+    padding: 6,
+    border: "1px solid #cbd5d1",
+    borderRadius: 10,
+    background: "white",
+    boxShadow: "0 14px 34px rgba(20, 42, 34, .16)",
+  } as const,
+  suggestionOption = {
+    display: "block",
+    width: "100%",
+    padding: "10px 11px",
+    border: 0,
+    borderRadius: 7,
+    background: "white",
+    color: "#17251f",
+    textAlign: "left",
+    cursor: "pointer",
+  } as const,
+  suggestionEmpty = {
+    position: "absolute",
+    zIndex: 30,
+    top: "calc(100% - 2px)",
+    left: 0,
+    right: 0,
+    padding: "12px 13px",
+    border: "1px solid #cbd5d1",
+    borderRadius: 10,
+    background: "white",
+    color: "#66736d",
+    fontSize: 13,
+    boxShadow: "0 14px 34px rgba(20, 42, 34, .12)",
   } as const,
   input = {
     width: "100%",
