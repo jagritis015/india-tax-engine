@@ -506,6 +506,22 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
           <section style={grid}>
             <Card title="Payroll activation">
               <Detail label="Current model" value={caseRecord.payrollModel} />
+              {caseRecord.assignmentType === "Permanent transfer" && (
+                <>
+                  <Detail
+                    label="India employment cessation"
+                    value={caseRecord.indiaEmploymentCessationDate ?? "Missing"}
+                  />
+                  <Detail
+                    label="Host payroll commencement"
+                    value={caseRecord.hostPayrollCommencementDate ?? "Missing"}
+                  />
+                  <Detail
+                    label="Post-transfer allocation"
+                    value={`${caseRecord.compensationHomePct}% India · ${caseRecord.compensationHostPct}% host`}
+                  />
+                </>
+              )}
               <Detail
                 label="Latest evaluation"
                 value={`v${evaluation.evaluationVersion} · ${evaluation.computedStatus.replaceAll("_", " ")}`}
@@ -523,9 +539,9 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
             </Card>
             <Card title="Runs touched">
               <p style={muted}>
-                No production payroll run is linked in Phase 1. This UAT
-                displays activation status only and does not create host or
-                shadow payroll money.
+                {caseRecord.assignmentType === "Permanent transfer"
+                  ? "India payroll ends on the cessation date. Regular payroll moves fully to the host country from the host commencement date; later India payments must be prior-period settlements."
+                  : "No production payroll run is linked in this UAT. This view displays activation status only."}
               </p>
             </Card>
           </section>
