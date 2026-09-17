@@ -18,11 +18,19 @@ import {
   type ObligationRecord,
   type ReadinessEvaluation,
 } from "@/lib/uat-global-mobility";
+import {
+  calculateTaxEqualization,
+  settleTaxEqualizationThroughReadiness,
+  TAX_EQUALIZATION_FIXTURES,
+  type TaxEqualizationInputs,
+  type TaxEqualizationRecord,
+} from "@/lib/uat-tax-equalization";
 
 type SessionState = {
   cases: MobilityCase[];
   obligations: ObligationRecord[];
   evaluations: Record<string, ReadinessEvaluation>;
+  taxEqualizationRecords: TaxEqualizationRecord[];
 };
 
 type ObligationChange = Parameters<
@@ -44,6 +52,7 @@ function freshState(): SessionState {
         evaluateMobilityReadiness(caseRecord, obligations),
       ]),
     ),
+    taxEqualizationRecords: TAX_EQUALIZATION_FIXTURES.map((item) => ({ ...item })),
   };
 }
 
@@ -56,6 +65,13 @@ type SessionStore = SessionState & {
     change: Partial<MobilityCase>,
   ) => ReadinessEvaluation | null;
   addCase: (caseRecord: MobilityCase) => void;
+  calculateTaxForCase: (
+    caseId: string,
+    input: TaxEqualizationInputs,
+  ) => { result: TaxEqualizationRecord } | { error: string };
+  settleTaxForCase: (
+    caseId: string,
+  ) => ReturnType<typeof settleTaxEqualizationThroughReadiness>;
   resetSession: () => void;
   resetCase: (caseId: string) => void;
 };
@@ -140,6 +156,63 @@ export function MobilitySessionProvider({ children }: { children: ReactNode }) {
     [replace],
   );
 
+  const calculateTaxForCase = useCallback(
+    (caseId: string, input: TaxEqualizationInputs) => {
+      const before = current.current;
+      const caseRecord = before.cases.find((item) => item.caseId === caseId);
+      const record = before.taxEqualizationRecords.find(
+        (item) => item.caseId === caseId,
+      );
+      if (!caseRecord || !record)
+        return { error: "Tax equalization is not configured for this UAT case." } as const;
+      try {
+        const result = calculateTaxEqualization(caseRecord, record, input);
+        replace({
+          ...before,
+          taxEqualizationRecords: before.taxEqualizationRecords.map((item) =>
+            item.recordId === result.recordId ? result : item,
+          ),
+        });
+        return { result } as const;
+      } catch (error) {
+        return {
+          error: error instanceof Error ? error.message : "Tax calculation failed.",
+        } as const;
+      }
+    },
+    [replace],
+  );
+
+  const settleTaxForCase = useCallback(
+    (caseId: string) => {
+      const before = current.current;
+      const caseRecord = before.cases.find((item) => item.caseId === caseId);
+      if (!caseRecord)
+        return { error: "Case does not match the current UAT session." } as const;
+      const outcome = settleTaxEqualizationThroughReadiness({
+        caseRecord,
+        obligations: before.obligations,
+        evaluation: before.evaluations[caseId],
+        records: before.taxEqualizationRecords,
+      });
+      if ("error" in outcome) return outcome;
+
+      // The existing combined obligation operation produces the completed
+      // evaluation; one shared-store replacement publishes all three together.
+      replace({
+        ...before,
+        obligations: outcome.result.obligations,
+        evaluations: {
+          ...before.evaluations,
+          [caseId]: outcome.result.evaluation,
+        },
+        taxEqualizationRecords: outcome.result.records,
+      });
+      return outcome;
+    },
+    [replace],
+  );
+
   const resetSession = useCallback(() => replace(freshState()), [replace]);
   const resetCase = useCallback(
     (caseId: string) => {
@@ -153,6 +226,9 @@ export function MobilitySessionProvider({ children }: { children: ReactNode }) {
         ...before.obligations.filter((item) => item.caseId !== caseId),
         ...fixtureObligations,
       ];
+      const fixtureTaxRecord = TAX_EQUALIZATION_FIXTURES.find(
+        (item) => item.caseId === caseId,
+      );
       replace({
         ...before,
         cases: before.cases.map((item) =>
@@ -163,6 +239,14 @@ export function MobilitySessionProvider({ children }: { children: ReactNode }) {
           ...before.evaluations,
           [caseId]: evaluateMobilityReadiness(fixture, obligations),
         },
+        taxEqualizationRecords: fixtureTaxRecord
+          ? [
+              ...before.taxEqualizationRecords.filter(
+                (item) => item.caseId !== caseId,
+              ),
+              { ...fixtureTaxRecord },
+            ]
+          : before.taxEqualizationRecords,
       });
     },
     [replace],
@@ -174,6 +258,8 @@ export function MobilitySessionProvider({ children }: { children: ReactNode }) {
       applyObligationChange,
       updateCaseAndEvaluate,
       addCase,
+      calculateTaxForCase,
+      settleTaxForCase,
       resetSession,
       resetCase,
     }),
@@ -182,6 +268,8 @@ export function MobilitySessionProvider({ children }: { children: ReactNode }) {
       applyObligationChange,
       updateCaseAndEvaluate,
       addCase,
+      calculateTaxForCase,
+      settleTaxForCase,
       resetSession,
       resetCase,
     ],
@@ -199,4 +287,3 @@ export function useMobilitySession() {
     throw new Error("useMobilitySession requires MobilitySessionProvider");
   return store;
 }
-

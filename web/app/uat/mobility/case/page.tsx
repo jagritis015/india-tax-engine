@@ -53,9 +53,19 @@ function MobilityCaseRoute() {
 }
 
 function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
-  const { obligations, evaluations, updateCaseAndEvaluate, resetCase } =
-    useMobilitySession();
+  const {
+    obligations,
+    evaluations,
+    taxEqualizationRecords,
+    updateCaseAndEvaluate,
+    calculateTaxForCase,
+    settleTaxForCase,
+    resetCase,
+  } = useMobilitySession();
   const evaluation = evaluations[caseRecord.caseId];
+  const taxRecord = taxEqualizationRecords.find(
+    (item) => item.caseId === caseRecord.caseId,
+  );
   const [tab, setTab] = useState<Tab>("Overview");
   const [message, setMessage] = useState("");
   const [newDay, setNewDay] = useState("");
@@ -63,6 +73,13 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
     home: String(caseRecord.compensationHomePct),
     host: String(caseRecord.compensationHostPct),
   });
+  const [taxInputs, setTaxInputs] = useState(() => ({
+    taxYear: taxRecord?.taxYear ?? "2026-27",
+    homeSalary: String(taxRecord?.homeSalary ?? 0),
+    hypotheticalTaxRate: String(taxRecord?.hypotheticalTaxRate ?? 0),
+    actualHomeLiability: String(taxRecord?.actualHomeLiability ?? 0),
+    actualHostLiability: String(taxRecord?.actualHostLiability ?? 0),
+  }));
   const caseObligations = useMemo(
     () => obligations.filter((x) => x.caseId === caseRecord.caseId),
     [obligations, caseRecord.caseId],
@@ -117,6 +134,29 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
       host: String(initialCase.compensationHostPct),
     });
     setMessage("Representative defaults restored.");
+  }
+  function calculateTax(e: React.FormEvent) {
+    e.preventDefault();
+    const outcome = calculateTaxForCase(caseRecord.caseId, {
+      taxYear: taxInputs.taxYear,
+      homeSalary: Number(taxInputs.homeSalary),
+      hypotheticalTaxRate: Number(taxInputs.hypotheticalTaxRate),
+      actualHomeLiability: Number(taxInputs.actualHomeLiability),
+      actualHostLiability: Number(taxInputs.actualHostLiability),
+    });
+    setMessage(
+      "error" in outcome
+        ? outcome.error
+        : "Tax equalization recalculated from the current UAT session inputs.",
+    );
+  }
+  function settleTax() {
+    const outcome = settleTaxForCase(caseRecord.caseId);
+    setMessage(
+      "error" in outcome
+        ? outcome.error
+        : "Settlement completed. The existing Tax obligation was resolved and Readiness was fully recomputed.",
+    );
   }
   return (
     <main style={shell}>
@@ -362,17 +402,86 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
           />
         )}
         {tab === "Tax" && (
-          <Controlled
-            title="Host-country monetary tax is blocked"
-            current={`DTAA configured: ${caseRecord.dtaaExists ? "Yes" : "No"}. ${caseRecord.unsupportedCalculations.join(" ") || "No fixture-level unsupported calculation is recorded."}`}
-            unsupported="This Phase 1 case workspace does not calculate unverified host tax, treaty relief or tax equalization true-up."
-            reason={
-              caseRecord.dtaaExists
-                ? "The host monetary engine is not verified."
-                : "No DTAA calculation path is configured, so double-taxation exposure is shown instead of omitted."
-            }
-            next="Add verified corridor rules, deterministic host tax calculations and reviewed policy inputs."
-          />
+          taxRecord ? (
+            <section style={panel}>
+              <SectionHead
+                title="Tax equalization settlement"
+                copy="Deterministic UAT calculation from session inputs. Actual liabilities are entered values, not country-tax engine outputs."
+              />
+              <div style={notice}>
+                <strong>UAT session data</strong>
+                <span>Tax inputs and results reset on reload.</span>
+              </div>
+              <form onSubmit={calculateTax} style={grid}>
+                {(
+                  [
+                    ["taxYear", "Tax year", "text"],
+                    ["homeSalary", "Home salary (₹)", "number"],
+                    ["hypotheticalTaxRate", "Hypothetical tax rate (%)", "number"],
+                    ["actualHomeLiability", "Actual home liability (₹)", "number"],
+                    ["actualHostLiability", "Actual host liability (₹)", "number"],
+                  ] as const
+                ).map(([key, text, type]) => (
+                  <label key={key} style={label}>
+                    {text}
+                    <input
+                      type={type}
+                      min={type === "number" ? "0" : undefined}
+                      step={key === "hypotheticalTaxRate" ? "0.01" : "1"}
+                      value={taxInputs[key]}
+                      onChange={(e) =>
+                        setTaxInputs((current) => ({
+                          ...current,
+                          [key]: e.target.value,
+                        }))
+                      }
+                      style={input}
+                    />
+                  </label>
+                ))}
+                <div style={{ alignSelf: "end", marginBottom: 11 }}>
+                  <button style={primary}>Calculate true-up</button>
+                </div>
+              </form>
+              <div style={{ ...grid, marginTop: 18 }}>
+                <Detail label="Status" value={taxRecord.trueUpStatus.toUpperCase()} />
+                <Detail label="Hypothetical withholding" value={formatInr(taxRecord.hypotheticalWithholding)} />
+                <Detail label="Treaty relief" value={formatInr(taxRecord.treatyRelief)} />
+                <Detail label="Combined actual liability" value={formatInr(taxRecord.combinedActualLiability)} />
+                <Detail label="Double-taxation exposure" value={formatInr(taxRecord.doubleTaxationExposure)} />
+                <Detail
+                  label="Settlement"
+                  value={`${settlementLabel(taxRecord.settlementDirection)} ${formatInr(taxRecord.settlementAmount)}`}
+                />
+              </div>
+              <div style={{ ...issue, marginTop: 12, borderColor: caseRecord.dtaaExists ? "#bcd9ce" : "#efb3a9" }}>
+                <strong>{caseRecord.dtaaExists ? "DTAA relief applied" : "No DTAA — exposure shown explicitly"}</strong>
+                <p style={muted}>
+                  {caseRecord.dtaaExists
+                    ? `Relief equals the lower of entered home and host liabilities: ${formatInr(taxRecord.treatyRelief)}.`
+                    : `Potential double-taxation exposure is ${formatInr(taxRecord.doubleTaxationExposure)}; no relief is assumed.`}
+                </p>
+              </div>
+              {taxRecord.trueUpStatus === "calculated" && (
+                <button onClick={settleTax} style={{ ...primary, marginTop: 14 }}>
+                  Mark settlement completed
+                </button>
+              )}
+              {taxRecord.trueUpStatus === "settled" && (
+                <div style={{ ...success, marginTop: 14 }}>
+                  Settlement completed. The Tax obligation is resolved through the shared Readiness operation.
+                </div>
+              )}
+            </section>
+          ) : (
+            <Controlled
+              title="Tax equalization is not configured"
+              current={`DTAA configured: ${caseRecord.dtaaExists ? "Yes" : "No"}.`}
+              unsupported="No TaxEqualizationRecord fixture exists for this case."
+              reason="A monetary result requires explicit policy and liability inputs."
+              next="Add a reviewed UAT tax equalization record for this corridor."
+            />
+          )
         )}
         {tab === "Payroll" && (
           <section style={grid}>
@@ -511,6 +620,20 @@ function Controlled({
       </div>
     </section>
   );
+}
+function formatInr(value: number) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+function settlementLabel(
+  direction: "EMPLOYER_OWES_ASSIGNEE" | "ASSIGNEE_OWES_EMPLOYER" | "BALANCED",
+) {
+  if (direction === "EMPLOYER_OWES_ASSIGNEE") return "Employer owes assignee";
+  if (direction === "ASSIGNEE_OWES_EMPLOYER") return "Assignee owes employer";
+  return "Balanced";
 }
 const shell = {
     minHeight: "100vh",
