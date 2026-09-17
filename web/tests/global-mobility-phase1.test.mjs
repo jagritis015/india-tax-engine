@@ -103,3 +103,28 @@ test("navigation, queue, eight tabs and Compliance ownership are explicit",async
   assert.match(queue,/Assignment lifecycle/); assert.match(queue,/Readiness/); assert.match(queue,/c\.lifecycleStatus === lifecycle/);
   assert.match(queue,/UAT_EMPLOYEES/); assert.match(queue,/niva-payroll-employee-suggestions/); assert.match(queue,/term\.length < 2/); assert.match(queue,/\.slice\(0, 6\)/); assert.doesNotMatch(queue,/<datalist/); assert.match(workspace,/resolveMobilityCase/); assert.doesNotMatch(workspace,/cases\.find\(.*\) \?\? cases\[0\]/);
 });
+
+test("permanent transfer moves from India cessation to host payroll",async()=>{
+  const m=await vite.ssrLoadModule("/lib/uat-global-mobility.ts");
+  const ananya=m.MOBILITY_CASE_FIXTURES.find(x=>x.employeeName==="Ananya Rao");
+  const evaluation=m.evaluateMobilityReadiness(ananya,m.OBLIGATION_FIXTURES);
+  assert.equal(ananya.payrollModel,"Host payroll");
+  assert.equal(ananya.indiaEmploymentCessationDate,"2026-03-31");
+  assert.equal(ananya.hostPayrollCommencementDate,"2026-04-01");
+  assert.equal(ananya.compensationHomePct,0);
+  assert.equal(ananya.compensationHostPct,100);
+  assert.equal(evaluation.blockers.some(x=>x.workstream==="PAYROLL"),false);
+});
+
+test("permanent transfer blocks split payroll, missing dates and overlap",async()=>{
+  const m=await vite.ssrLoadModule("/lib/uat-global-mobility.ts");
+  const base=m.MOBILITY_CASE_FIXTURES.find(x=>x.employeeName==="Ananya Rao");
+  const invalid={...base,payrollModel:"Split",indiaEmploymentCessationDate:null,hostPayrollCommencementDate:null,compensationHomePct:50,compensationHostPct:50};
+  const first=m.evaluateMobilityReadiness(invalid,[]);
+  assert.equal(first.computedStatus,"BLOCKED");
+  assert.ok(first.blockers.some(x=>/cessation date is required/i.test(x.reason)));
+  assert.ok(first.blockers.some(x=>/Host payroll commencement date is required/i.test(x.reason)));
+  assert.ok(first.blockers.some(x=>/Split and Shadow payroll are not permitted/i.test(x.reason)));
+  const overlap=m.evaluateMobilityReadiness({...base,indiaEmploymentCessationDate:"2026-04-01",hostPayrollCommencementDate:"2026-04-01"},[]);
+  assert.ok(overlap.blockers.some(x=>/must commence after India employment cessation/i.test(x.reason)));
+});
