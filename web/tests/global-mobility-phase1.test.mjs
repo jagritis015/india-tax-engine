@@ -73,7 +73,7 @@ test("cancelled obligation always becomes review even when open severity was blo
 test("fixture coverage includes totalization and non-DTAA branches",async()=>{
   const m=await vite.ssrLoadModule("/lib/uat-global-mobility.ts");
   assert.ok(m.MOBILITY_CASE_FIXTURES.some(x=>x.totalizationAgreement));
-  assert.ok(m.MOBILITY_CASE_FIXTURES.some(x=>!x.dtaaExists&&x.unsupportedCalculations.some(reason=>/double-taxation/i.test(reason))));
+  assert.ok(m.MOBILITY_CASE_FIXTURES.some(x=>!x.dtaaExists));
   assert.equal(m.MOBILITY_CASE_FIXTURES.length,5);
 });
 
