@@ -52,7 +52,9 @@ export type MobilityCase = {
   startDate: string;
   endDate: string | null;
   owner: string;
-  payrollModel: "Standard" | "Split" | "Shadow";
+  payrollModel: "Standard" | "Split" | "Shadow" | "Host payroll";
+  indiaEmploymentCessationDate: string | null;
+  hostPayrollCommencementDate: string | null;
   workAuthorizationExpiry: string | null;
   totalizationAgreement: boolean;
   dtaaExists: boolean;
@@ -78,6 +80,8 @@ export const MOBILITY_CASE_FIXTURES: MobilityCase[] = [
     endDate: "2028-01-11",
     owner: "Meera Shah",
     payrollModel: "Shadow",
+    indiaEmploymentCessationDate: null,
+    hostPayrollCommencementDate: null,
     workAuthorizationExpiry: "2027-01-10",
     totalizationAgreement: false,
     dtaaExists: true,
@@ -102,6 +106,8 @@ export const MOBILITY_CASE_FIXTURES: MobilityCase[] = [
     endDate: "2028-10-31",
     owner: "Kavya Menon",
     payrollModel: "Split",
+    indiaEmploymentCessationDate: null,
+    hostPayrollCommencementDate: null,
     workAuthorizationExpiry: "2028-10-31",
     totalizationAgreement: true,
     dtaaExists: true,
@@ -124,6 +130,8 @@ export const MOBILITY_CASE_FIXTURES: MobilityCase[] = [
     endDate: "2027-04-14",
     owner: "Meera Shah",
     payrollModel: "Shadow",
+    indiaEmploymentCessationDate: null,
+    hostPayrollCommencementDate: null,
     workAuthorizationExpiry: null,
     totalizationAgreement: false,
     dtaaExists: false,
@@ -146,6 +154,8 @@ export const MOBILITY_CASE_FIXTURES: MobilityCase[] = [
     endDate: "2026-12-20",
     owner: "Arjun Rao",
     payrollModel: "Standard",
+    indiaEmploymentCessationDate: null,
+    hostPayrollCommencementDate: null,
     workAuthorizationExpiry: "2026-12-20",
     totalizationAgreement: false,
     dtaaExists: true,
@@ -167,7 +177,9 @@ export const MOBILITY_CASE_FIXTURES: MobilityCase[] = [
     startDate: "2026-04-01",
     endDate: null,
     owner: "Kavya Menon",
-    payrollModel: "Split",
+    payrollModel: "Host payroll",
+    indiaEmploymentCessationDate: "2026-03-31",
+    hostPayrollCommencementDate: "2026-04-01",
     workAuthorizationExpiry: "2029-03-31",
     totalizationAgreement: true,
     dtaaExists: true,
@@ -348,6 +360,46 @@ export function evaluateMobilityReadiness(
       severity: "BLOCKER",
       reason: "Home and host compensation allocation must total 100%.",
     });
+  if (caseRecord.assignmentType === "Permanent transfer") {
+    if (!caseRecord.indiaEmploymentCessationDate)
+      blockers.push({
+        workstream: "PAYROLL",
+        severity: "BLOCKER",
+        reason: "India employment cessation date is required for a permanent transfer.",
+      });
+    if (!caseRecord.hostPayrollCommencementDate)
+      blockers.push({
+        workstream: "PAYROLL",
+        severity: "BLOCKER",
+        reason: "Host payroll commencement date is required for a permanent transfer.",
+      });
+    if (
+      caseRecord.indiaEmploymentCessationDate &&
+      caseRecord.hostPayrollCommencementDate &&
+      caseRecord.hostPayrollCommencementDate <=
+        caseRecord.indiaEmploymentCessationDate
+    )
+      blockers.push({
+        workstream: "PAYROLL",
+        severity: "BLOCKER",
+        reason: "Host payroll must commence after India employment cessation.",
+      });
+    if (caseRecord.payrollModel !== "Host payroll")
+      blockers.push({
+        workstream: "PAYROLL",
+        severity: "BLOCKER",
+        reason: "A permanent transfer must use host payroll after the transfer date; Split and Shadow payroll are not permitted.",
+      });
+    if (
+      caseRecord.compensationHomePct !== 0 ||
+      caseRecord.compensationHostPct !== 100
+    )
+      blockers.push({
+        workstream: "COMPENSATION",
+        severity: "BLOCKER",
+        reason: "Post-transfer compensation must be allocated 0% to India payroll and 100% to host payroll.",
+      });
+  }
   for (const reason of caseRecord.unsupportedCalculations)
     blockers.push({
       workstream: "TAX",
@@ -464,6 +516,8 @@ export function buildMobilityCaseFromPayrollEmployee(input: {
     endDate: "2027-03-31",
     owner: input.owner,
     payrollModel: "Standard",
+    indiaEmploymentCessationDate: null,
+    hostPayrollCommencementDate: null,
     workAuthorizationExpiry: null,
     totalizationAgreement: false,
     dtaaExists: false,
