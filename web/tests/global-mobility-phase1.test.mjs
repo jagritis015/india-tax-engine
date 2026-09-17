@@ -30,11 +30,25 @@ test("stale obligation edit is rejected without a result",async()=>{
 test("malformed obligation status blocks and names the raw value",async()=>{
   const m=await vite.ssrLoadModule("/lib/uat-global-mobility.ts");
   const caseRecord={...m.MOBILITY_CASE_FIXTURES[3],unsupportedCalculations:[]};
-  const malformed={...m.OBLIGATION_FIXTURES[0],caseId:caseRecord.caseId,sourceId:caseRecord.caseId,status:"LOST_IN_TRANSIT"};
+  const malformed={...m.OBLIGATION_FIXTURES[0],obligationId:"OBL-UAT-MALFORMED-01",caseId:caseRecord.caseId,sourceId:caseRecord.caseId,jurisdiction:"Singapore",status:"LOST_IN_TRANSIT"};
   const evaluation=m.evaluateMobilityReadiness(caseRecord,[malformed]);
   assert.equal(evaluation.computedStatus,"BLOCKED");
   assert.equal(evaluation.blockers[0].severity,"BLOCKER");
   assert.equal(evaluation.blockers[0].reason,"Obligation status unrecognized: LOST_IN_TRANSIT");
+});
+
+test("two rapid writes using the same revision cannot both succeed",async()=>{
+  const m=await vite.ssrLoadModule("/lib/uat-global-mobility.ts");
+  const caseRecord=m.MOBILITY_CASE_FIXTURES[3];
+  const obligations=m.OBLIGATION_FIXTURES.filter(x=>x.caseId===caseRecord.caseId);
+  const evaluation=m.evaluateMobilityReadiness(caseRecord,obligations);
+  const current=obligations[0];
+  const input={caseId:caseRecord.caseId,obligationId:current.obligationId,expectedRevision:current.revision,change:{status:"OPEN"}};
+  const first=m.applyObligationChangeAndEvaluateReadiness({caseRecord,obligations,evaluation},input);
+  assert.ok(first.result);
+  const second=m.applyObligationChangeAndEvaluateReadiness({caseRecord,obligations:first.result.obligations,evaluation:first.result.evaluation},input);
+  assert.match(second.error,/stale edit/i);
+  assert.equal("result" in second,false);
 });
 
 test("validation failure leaves the complete operation state unchanged",async()=>{
