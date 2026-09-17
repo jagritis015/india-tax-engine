@@ -63,10 +63,29 @@ test("fixture coverage includes totalization and non-DTAA branches",async()=>{
   assert.equal(m.MOBILITY_CASE_FIXTURES.length,5);
 });
 
+test("new mobility cases are linked to the Niva payroll employee master",async()=>{
+  const m=await vite.ssrLoadModule("/lib/uat-global-mobility.ts");
+  const payroll=await vite.ssrLoadModule("/lib/uat-niva-data.ts");
+  const employee=payroll.UAT_EMPLOYEES.find(x=>x.name==="Neha Menon");
+  assert.ok(employee);
+  const created=m.buildMobilityCaseFromPayrollEmployee({employee,hostCountry:"United States",assignmentType:"Long-term",owner:"Meera Shah",ordinal:6});
+  assert.equal(created.employeeId,"NVL-006");
+  assert.equal(created.employeeName,"Neha Menon");
+  assert.equal(created.caseId,"MOB-NVL-006-UAT-6");
+});
+
+test("a newly created case resolves exactly and never falls back to Aditi",async()=>{
+  const m=await vite.ssrLoadModule("/lib/uat-global-mobility.ts");
+  const created=m.buildMobilityCaseFromPayrollEmployee({employee:{id:"NVL-006",name:"Neha Menon"},hostCountry:"United States",assignmentType:"Long-term",owner:"Meera Shah",ordinal:6});
+  const cases=[...m.MOBILITY_CASE_FIXTURES,created];
+  assert.equal(m.resolveMobilityCase(cases,created.caseId)?.employeeName,"Neha Menon");
+  assert.equal(m.resolveMobilityCase(cases,"MOB-DOES-NOT-EXIST"),null);
+});
+
 test("navigation, queue, eight tabs and Compliance ownership are explicit",async()=>{
   const home=await readFile(new URL("../app/page.tsx",import.meta.url),"utf8"); const queue=await readFile(new URL("../app/uat/mobility/page.tsx",import.meta.url),"utf8"); const workspace=await readFile(new URL("../app/uat/mobility/case/page.tsx",import.meta.url),"utf8"); const compliance=await readFile(new URL("../app/uat/compliance/mobility/page.tsx",import.meta.url),"utf8"); const layout=await readFile(new URL("../app/layout.tsx",import.meta.url),"utf8"); const store=await readFile(new URL("../app/uat/mobility/session-store.tsx",import.meta.url),"utf8");
   assert.match(home,/href="\/uat\/mobility"/); assert.match(queue,/Mobility case queue/); assert.match(queue,/Create mobility case/); assert.match(workspace,/Overview.*Immigration.*Days.*Compensation.*Equity.*Tax.*Payroll.*Readiness/s); assert.match(workspace,/Mobility displays the case-filtered view/); assert.match(compliance,/Compliance owns changes/); assert.match(queue,/reset on reload/i);
   assert.match(layout,/MobilitySessionProvider/); assert.match(workspace,/useMobilitySession/); assert.match(compliance,/useMobilitySession/); assert.match(store,/One state-object replacement is the only visible write/); assert.doesNotMatch(compliance,/useState\(OBLIGATION_FIXTURES\)/);
   assert.match(queue,/Assignment lifecycle/); assert.match(queue,/Readiness/); assert.match(queue,/c\.lifecycleStatus === lifecycle/);
+  assert.match(queue,/UAT_EMPLOYEES/); assert.match(queue,/niva-payroll-employees/); assert.match(workspace,/resolveMobilityCase/); assert.doesNotMatch(workspace,/cases\.find\(.*\) \?\? cases\[0\]/);
 });
-

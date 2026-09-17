@@ -426,3 +426,48 @@ export function daysToExpiry(date: string | null, asOf = "2026-09-17") {
   if (!date) return null;
   return Math.ceil((Date.parse(date) - Date.parse(asOf)) / 86400000);
 }
+
+export function buildMobilityCaseFromPayrollEmployee(input: {
+  employee: { id: string; name: string };
+  hostCountry: string;
+  assignmentType: MobilityCase["assignmentType"];
+  owner: string;
+  ordinal: number;
+}): MobilityCase {
+  const employeeId = input.employee.id.trim();
+  const hostCountry = input.hostCountry.trim();
+  if (!employeeId || !input.employee.name.trim() || !hostCountry)
+    throw new Error("A payroll employee and host country are required.");
+  return {
+    caseId: `MOB-${employeeId}-UAT-${input.ordinal}`,
+    employeeId,
+    employeeName: input.employee.name.trim(),
+    homeCountry: "India",
+    hostCountry,
+    assignmentType: input.assignmentType,
+    lifecycleStatus: "Pre-assignment",
+    startDate: "2026-10-01",
+    endDate: "2027-03-31",
+    owner: input.owner,
+    payrollModel: "Standard",
+    workAuthorizationExpiry: null,
+    totalizationAgreement: false,
+    dtaaExists: false,
+    defaultDayThreshold: 183,
+    currentHostDays: 0,
+    compensationHomePct: 100,
+    compensationHostPct: 0,
+    unsupportedCalculations: [
+      "Corridor tax and immigration rules are not configured for this new UAT case.",
+    ],
+    lastUpdated: "Current session",
+  };
+}
+
+export function resolveMobilityCase(
+  cases: MobilityCase[],
+  caseId: string | null,
+) {
+  if (!caseId) return null;
+  return cases.find((item) => item.caseId === caseId) ?? null;
+}
