@@ -9,6 +9,7 @@ import {
   type ObligationRecord,
 } from "@/lib/uat-global-mobility";
 import { useMobilitySession } from "../session-store";
+import { assignmentTaxMechanism } from "@/lib/uat-tax-equalization";
 
 const tabs = [
   "Overview",
@@ -66,6 +67,7 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
   const taxRecord = taxEqualizationRecords.find(
     (item) => item.caseId === caseRecord.caseId,
   );
+  const taxMechanism = assignmentTaxMechanism(caseRecord.assignmentType);
   const [tab, setTab] = useState<Tab>("Overview");
   const [message, setMessage] = useState("");
   const [newDay, setNewDay] = useState("");
@@ -75,7 +77,7 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
   });
   const [taxInputs, setTaxInputs] = useState(() => ({
     taxYear: taxRecord?.taxYear ?? "2026-27",
-    homeSalary: String(taxRecord?.homeSalary ?? 0),
+    stayAtHomeBaseSalary: String(taxRecord?.stayAtHomeBaseSalary ?? 0),
     hypotheticalTaxRate: String(taxRecord?.hypotheticalTaxRate ?? 0),
     actualHomeLiability: String(taxRecord?.actualHomeLiability ?? 0),
     actualHostLiability: String(taxRecord?.actualHostLiability ?? 0),
@@ -139,7 +141,7 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
     e.preventDefault();
     const outcome = calculateTaxForCase(caseRecord.caseId, {
       taxYear: taxInputs.taxYear,
-      homeSalary: Number(taxInputs.homeSalary),
+      stayAtHomeBaseSalary: Number(taxInputs.stayAtHomeBaseSalary),
       hypotheticalTaxRate: Number(taxInputs.hypotheticalTaxRate),
       actualHomeLiability: Number(taxInputs.actualHomeLiability),
       actualHostLiability: Number(taxInputs.actualHostLiability),
@@ -416,7 +418,7 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
                 {(
                   [
                     ["taxYear", "Tax year", "text"],
-                    ["homeSalary", "Home salary (₹)", "number"],
+                    ["stayAtHomeBaseSalary", "Stay-at-home base salary (₹)", "number"],
                     ["hypotheticalTaxRate", "Hypothetical tax rate (%)", "number"],
                     ["actualHomeLiability", "Actual home liability (₹)", "number"],
                     ["actualHostLiability", "Actual host liability (₹)", "number"],
@@ -445,7 +447,10 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
               </form>
               <div style={{ ...grid, marginTop: 18 }}>
                 <Detail label="Status" value={taxRecord.trueUpStatus.toUpperCase()} />
+                <Detail label="Assignment mechanism" value="Full tax equalization" />
+                <Detail label="Hypothetical tax basis" value={`${formatInr(taxRecord.stayAtHomeBaseSalary)} base salary only`} />
                 <Detail label="Hypothetical withholding" value={formatInr(taxRecord.hypotheticalWithholding)} />
+                <Detail label="Treaty method" value={taxRecord.treatyReliefMethod === "CREDIT" ? "Foreign tax credit method" : "No treaty relief"} />
                 <Detail label="Treaty relief" value={formatInr(taxRecord.treatyRelief)} />
                 <Detail label="Combined actual liability" value={formatInr(taxRecord.combinedActualLiability)} />
                 <Detail label="Double-taxation exposure" value={formatInr(taxRecord.doubleTaxationExposure)} />
@@ -458,9 +463,15 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
                 <strong>{caseRecord.dtaaExists ? "DTAA relief applied" : "No DTAA — exposure shown explicitly"}</strong>
                 <p style={muted}>
                   {caseRecord.dtaaExists
-                    ? `Relief equals the lower of entered home and host liabilities: ${formatInr(taxRecord.treatyRelief)}.`
+                    ? `Credit method: relief equals the lower of entered home and host liabilities, ${formatInr(taxRecord.treatyRelief)}. Combined actual liability of ${formatInr(taxRecord.combinedActualLiability)} is shown after relief.`
                     : `Potential double-taxation exposure is ${formatInr(taxRecord.doubleTaxationExposure)}; no relief is assumed.`}
                 </p>
+              </div>
+              <div style={{ ...detail, marginTop: 12 }}>
+                <small style={{ color: "#6c7872" }}>Excluded from hypothetical tax basis</small>
+                <strong style={{ display: "block", marginTop: 4 }}>
+                  COLA {formatInr(taxRecord.excludedAssignmentAllowances.cola)} · Hardship {formatInr(taxRecord.excludedAssignmentAllowances.hardship)} · Housing premium {formatInr(taxRecord.excludedAssignmentAllowances.housingPremium)}
+                </strong>
               </div>
               {taxRecord.trueUpStatus === "calculated" && (
                 <button onClick={settleTax} style={{ ...primary, marginTop: 14 }}>
@@ -473,13 +484,21 @@ function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
                 </div>
               )}
             </section>
+          ) : taxMechanism === "TAX_PROTECTION" ? (
+            <Controlled
+              title="Tax protection only"
+              current={`${caseRecord.assignmentType}. Travel-day tax facts are tracked for this case.`}
+              unsupported="Hypothetical withholding and tax equalization settlement are disabled for business travelers."
+              reason="The employer reimburses only incremental tax caused by business travel days."
+              next="Enter verified home baseline tax and travel-day incremental tax to calculate the protection reimbursement."
+            />
           ) : (
             <Controlled
-              title="Tax equalization is not configured"
-              current={`DTAA configured: ${caseRecord.dtaaExists ? "Yes" : "No"}.`}
-              unsupported="No TaxEqualizationRecord fixture exists for this case."
-              reason="A monetary result requires explicit policy and liability inputs."
-              next="Add a reviewed UAT tax equalization record for this corridor."
+              title="Host payroll and host terms"
+              current={`${caseRecord.assignmentType}. Tax equalization and tax protection are not applicable.`}
+              unsupported="No hypothetical withholding, equalization true-up or travel tax protection is calculated."
+              reason="Permanent transfer and localization move the employee onto host payroll and host employment terms."
+              next="Complete host payroll onboarding and local tax registration outside the equalization workflow."
             />
           )
         )}

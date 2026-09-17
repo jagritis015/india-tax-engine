@@ -6,17 +6,28 @@ import {
 } from "@/lib/uat-global-mobility";
 
 export type TrueUpStatus = "not-due" | "estimated" | "calculated" | "settled";
+export type AssignmentTaxMechanism =
+  | "TAX_EQUALIZATION"
+  | "TAX_PROTECTION"
+  | "HOST_TERMS";
+export type TreatyReliefMethod = "CREDIT" | "EXEMPTION" | "NONE";
 
 export type TaxEqualizationRecord = {
   recordId: string;
   caseId: string;
   taxYear: string;
-  homeSalary: number;
+  stayAtHomeBaseSalary: number;
+  excludedAssignmentAllowances: {
+    cola: number;
+    hardship: number;
+    housingPremium: number;
+  };
   hypotheticalTaxRate: number;
   actualHomeLiability: number;
   actualHostLiability: number;
   hypotheticalWithholding: number;
   treatyRelief: number;
+  treatyReliefMethod: TreatyReliefMethod;
   combinedActualLiability: number;
   doubleTaxationExposure: number;
   settlementAmount: number;
@@ -29,7 +40,7 @@ export type TaxEqualizationRecord = {
 export type TaxEqualizationInputs = Pick<
   TaxEqualizationRecord,
   | "taxYear"
-  | "homeSalary"
+  | "stayAtHomeBaseSalary"
   | "hypotheticalTaxRate"
   | "actualHomeLiability"
   | "actualHostLiability"
@@ -38,13 +49,26 @@ export type TaxEqualizationInputs = Pick<
 const updatedAt = "2026-09-17T09:00:00+05:30";
 const money = (value: number) => Math.round(value);
 
+export function assignmentTaxMechanism(
+  assignmentType: MobilityCase["assignmentType"],
+): AssignmentTaxMechanism {
+  if (assignmentType === "Long-term" || assignmentType === "Short-term")
+    return "TAX_EQUALIZATION";
+  if (assignmentType === "Business traveler") return "TAX_PROTECTION";
+  return "HOST_TERMS";
+}
+
 export function calculateTaxEqualization(
   caseRecord: MobilityCase,
   current: TaxEqualizationRecord,
   input: TaxEqualizationInputs,
 ): TaxEqualizationRecord {
+  if (assignmentTaxMechanism(caseRecord.assignmentType) !== "TAX_EQUALIZATION")
+    throw new Error(
+      `Tax equalization is not permitted for assignment type ${caseRecord.assignmentType}.`,
+    );
   const values = [
-    input.homeSalary,
+    input.stayAtHomeBaseSalary,
     input.hypotheticalTaxRate,
     input.actualHomeLiability,
     input.actualHostLiability,
@@ -56,7 +80,7 @@ export function calculateTaxEqualization(
     throw new Error("Hypothetical tax rate cannot exceed 100%.");
 
   const hypotheticalWithholding = money(
-    input.homeSalary * (input.hypotheticalTaxRate / 100),
+    input.stayAtHomeBaseSalary * (input.hypotheticalTaxRate / 100),
   );
   const treatyRelief = caseRecord.dtaaExists
     ? Math.min(input.actualHomeLiability, input.actualHostLiability)
@@ -71,8 +95,12 @@ export function calculateTaxEqualization(
   return {
     ...current,
     ...input,
+    // Assignment allowances are disclosed for review but never enter the
+    // stay-at-home hypothetical withholding basis.
+    excludedAssignmentAllowances: current.excludedAssignmentAllowances,
     hypotheticalWithholding,
     treatyRelief,
+    treatyReliefMethod: caseRecord.dtaaExists ? "CREDIT" : "NONE",
     combinedActualLiability,
     doubleTaxationExposure,
     settlementAmount: Math.abs(delta),
@@ -93,12 +121,18 @@ export const TAX_EQUALIZATION_FIXTURES: TaxEqualizationRecord[] = [
     recordId: "TEQ-NVL-028-2026-27",
     caseId: "MOB-NVL-028-IND-DE",
     taxYear: "2026-27",
-    homeSalary: 3600000,
+    stayAtHomeBaseSalary: 3600000,
+    excludedAssignmentAllowances: {
+      cola: 240000,
+      hardship: 180000,
+      housingPremium: 360000,
+    },
     hypotheticalTaxRate: 25,
     actualHomeLiability: 820000,
     actualHostLiability: 1100000,
     hypotheticalWithholding: 900000,
     treatyRelief: 820000,
+    treatyReliefMethod: "CREDIT",
     combinedActualLiability: 1100000,
     doubleTaxationExposure: 0,
     settlementAmount: 200000,
@@ -111,12 +145,18 @@ export const TAX_EQUALIZATION_FIXTURES: TaxEqualizationRecord[] = [
     recordId: "TEQ-NVL-044-2026-27",
     caseId: "MOB-NVL-044-IND-BM",
     taxYear: "2026-27",
-    homeSalary: 3000000,
+    stayAtHomeBaseSalary: 3000000,
+    excludedAssignmentAllowances: {
+      cola: 180000,
+      hardship: 120000,
+      housingPremium: 300000,
+    },
     hypotheticalTaxRate: 20,
     actualHomeLiability: 520000,
     actualHostLiability: 310000,
     hypotheticalWithholding: 600000,
     treatyRelief: 0,
+    treatyReliefMethod: "NONE",
     combinedActualLiability: 830000,
     doubleTaxationExposure: 310000,
     settlementAmount: 230000,
