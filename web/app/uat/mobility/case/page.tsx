@@ -1,7 +1,13 @@
 "use client";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { MOBILITY_CASE_FIXTURES, type ObligationRecord } from "@/lib/uat-global-mobility";
+import { useSearchParams } from "next/navigation";
+import {
+  MOBILITY_CASE_FIXTURES,
+  resolveMobilityCase,
+  type MobilityCase,
+  type ObligationRecord,
+} from "@/lib/uat-global-mobility";
 import { useMobilitySession } from "../session-store";
 
 const tabs = [
@@ -16,14 +22,39 @@ const tabs = [
 ] as const;
 type Tab = (typeof tabs)[number];
 export default function MobilityCaseWorkspace() {
-  const caseId =
-    typeof window !== "undefined"
-      ? (new URLSearchParams(window.location.search).get("caseId") ??
-        MOBILITY_CASE_FIXTURES[0].caseId)
-      : MOBILITY_CASE_FIXTURES[0].caseId;
-  const { cases, obligations, evaluations, updateCaseAndEvaluate, resetCase } =
+  return (
+    <Suspense fallback={<main style={shell}><div style={wrap}>Loading mobility case…</div></main>}>
+      <MobilityCaseRoute />
+    </Suspense>
+  );
+}
+
+function MobilityCaseRoute() {
+  const searchParams = useSearchParams();
+  const { cases } = useMobilitySession();
+  const caseId = searchParams.get("caseId");
+  const caseRecord = resolveMobilityCase(cases, caseId);
+  if (!caseRecord)
+    return (
+      <main style={shell}>
+        <div style={wrap}>
+          <Link href="/uat/mobility" style={back}>← Mobility case queue</Link>
+          <section style={{ ...panel, marginTop: 18 }}>
+            <h1 style={h1}>Mobility case not found</h1>
+            <p style={muted}>
+              The requested case is not present in this UAT session. It may have
+              been cleared by a full page reload.
+            </p>
+          </section>
+        </div>
+      </main>
+    );
+  return <MobilityCaseView caseRecord={caseRecord} />;
+}
+
+function MobilityCaseView({ caseRecord }: { caseRecord: MobilityCase }) {
+  const { obligations, evaluations, updateCaseAndEvaluate, resetCase } =
     useMobilitySession();
-  const caseRecord = cases.find((x) => x.caseId === caseId) ?? cases[0];
   const evaluation = evaluations[caseRecord.caseId];
   const [tab, setTab] = useState<Tab>("Overview");
   const [message, setMessage] = useState("");
@@ -73,9 +104,13 @@ export default function MobilityCaseWorkspace() {
     );
   }
   function reset() {
-    const initialCase =
-      MOBILITY_CASE_FIXTURES.find((item) => item.caseId === caseRecord.caseId) ??
-      MOBILITY_CASE_FIXTURES[0];
+    const initialCase = MOBILITY_CASE_FIXTURES.find(
+      (item) => item.caseId === caseRecord.caseId,
+    );
+    if (!initialCase) {
+      setMessage("This newly created case already reflects its current session defaults.");
+      return;
+    }
     resetCase(caseRecord.caseId);
     setAllocation({
       home: String(initialCase.compensationHomePct),
@@ -630,4 +665,3 @@ const shell = {
     borderRadius: 10,
     color: "#1b5949",
   } as const;
-
