@@ -1,11 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
-import {
-  evaluateMobilityReadiness,
-  MOBILITY_CASE_FIXTURES,
-  OBLIGATION_FIXTURES,
-  type ObligationRecord,
-} from "@/lib/uat-global-mobility";
+import Link from "next/link";
+import { MOBILITY_CASE_FIXTURES, type ObligationRecord } from "@/lib/uat-global-mobility";
+import { useMobilitySession } from "../session-store";
 
 const tabs = [
   "Overview",
@@ -24,23 +21,16 @@ export default function MobilityCaseWorkspace() {
       ? (new URLSearchParams(window.location.search).get("caseId") ??
         MOBILITY_CASE_FIXTURES[0].caseId)
       : MOBILITY_CASE_FIXTURES[0].caseId;
-  const initialCase =
-    MOBILITY_CASE_FIXTURES.find((x) => x.caseId === caseId) ??
-    MOBILITY_CASE_FIXTURES[0];
-  const initialObligations = OBLIGATION_FIXTURES.filter(
-    (x) => x.caseId === initialCase.caseId,
-  );
+  const { cases, obligations, evaluations, updateCaseAndEvaluate, resetCase } =
+    useMobilitySession();
+  const caseRecord = cases.find((x) => x.caseId === caseId) ?? cases[0];
+  const evaluation = evaluations[caseRecord.caseId];
   const [tab, setTab] = useState<Tab>("Overview");
-  const [caseRecord, setCaseRecord] = useState(initialCase);
-  const [obligations, setObligations] = useState(initialObligations);
-  const [evaluation, setEvaluation] = useState(() =>
-    evaluateMobilityReadiness(initialCase, initialObligations),
-  );
   const [message, setMessage] = useState("");
   const [newDay, setNewDay] = useState("");
   const [allocation, setAllocation] = useState({
-    home: String(initialCase.compensationHomePct),
-    host: String(initialCase.compensationHostPct),
+    home: String(caseRecord.compensationHomePct),
+    host: String(caseRecord.compensationHostPct),
   });
   const caseObligations = useMemo(
     () => obligations.filter((x) => x.caseId === caseRecord.caseId),
@@ -49,19 +39,10 @@ export default function MobilityCaseWorkspace() {
   function addDay(e: React.FormEvent) {
     e.preventDefault();
     if (!newDay) return;
-    const next = {
-      ...caseRecord,
+    updateCaseAndEvaluate(caseRecord.caseId, {
       currentHostDays: caseRecord.currentHostDays + 1,
       lastUpdated: "Current session",
-    };
-    setCaseRecord(next);
-    setEvaluation(
-      evaluateMobilityReadiness(
-        next,
-        obligations,
-        evaluation.evaluationVersion + 1,
-      ),
-    );
+    });
     setNewDay("");
     setMessage(
       "One host-country day added to this UAT session and full readiness recomputed.",
@@ -80,20 +61,11 @@ export default function MobilityCaseWorkspace() {
       setMessage("Enter valid non-negative percentages.");
       return;
     }
-    const next = {
-      ...caseRecord,
+    updateCaseAndEvaluate(caseRecord.caseId, {
       compensationHomePct: home,
       compensationHostPct: host,
       lastUpdated: "Current session",
-    };
-    setCaseRecord(next);
-    setEvaluation(
-      evaluateMobilityReadiness(
-        next,
-        obligations,
-        evaluation.evaluationVersion + 1,
-      ),
-    );
+    });
     setMessage(
       home + host === 100
         ? "Allocation applied and readiness fully recomputed."
@@ -101,9 +73,10 @@ export default function MobilityCaseWorkspace() {
     );
   }
   function reset() {
-    setCaseRecord(initialCase);
-    setObligations(initialObligations);
-    setEvaluation(evaluateMobilityReadiness(initialCase, initialObligations));
+    const initialCase =
+      MOBILITY_CASE_FIXTURES.find((item) => item.caseId === caseRecord.caseId) ??
+      MOBILITY_CASE_FIXTURES[0];
+    resetCase(caseRecord.caseId);
     setAllocation({
       home: String(initialCase.compensationHomePct),
       host: String(initialCase.compensationHostPct),
@@ -115,9 +88,9 @@ export default function MobilityCaseWorkspace() {
       <div style={wrap}>
         <header style={header}>
           <div>
-            <a href="/uat/mobility" style={back}>
+            <Link href="/uat/mobility" style={back}>
               ← Mobility case queue
-            </a>
+            </Link>
             <div style={eyebrow}>{caseRecord.caseId}</div>
             <h1 style={h1}>
               {caseRecord.employeeName} · {caseRecord.homeCountry} →{" "}
@@ -230,7 +203,7 @@ export default function MobilityCaseWorkspace() {
               title="Immigration obligations"
               copy="Mobility displays the case-filtered view. Compliance owns obligation status changes and the combined readiness operation."
             />
-            <a
+            <Link
               href={`/uat/compliance/mobility?caseId=${encodeURIComponent(caseRecord.caseId)}`}
               style={{
                 ...secondary,
@@ -240,7 +213,7 @@ export default function MobilityCaseWorkspace() {
               }}
             >
               Manage in Compliance
-            </a>
+            </Link>
             {caseObligations
               .filter((x) => x.workstream === "IMMIGRATION")
               .map((item) => (
@@ -657,3 +630,4 @@ const shell = {
     borderRadius: 10,
     color: "#1b5949",
   } as const;
+
