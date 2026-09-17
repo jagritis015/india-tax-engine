@@ -59,16 +59,44 @@ test("calculates September TDS from the Python golden annual-tax profile", () =>
   assert.equal(result.netSalary, 156214);
 });
 
-test("fails closed outside the supported no-surcharge subset", () => {
+test("calculates 10 percent surcharge above Rs 50 lakh with marginal relief", () => {
   const result = calculateSupportedUatPayroll({
     ...base,
-    basicSalary: 800000,
+    basicSalary: 715000,
     hra: 0,
     specialAllowance: 0,
-    taxableSalaryYtd: 0,
+    taxableSalaryYtd: 75000,
   });
 
-  assert.equal(result.status, "REVIEW_REQUIRED");
-  assert.equal(result.netSalary, null);
-  assert.match(result.reviewReason, /surcharge/i);
+  assert.equal(result.status, "CALCULATED");
+  assert.equal(result.taxableIncome, 5005000);
+  assert.equal(result.surchargeRatePercent, 10);
+  assert.equal(result.surchargeBeforeRelief, 108150);
+  assert.equal(result.surchargeMarginalRelief, 104650);
+  assert.equal(result.surcharge, 3500);
+  assert.equal(result.cess, 43400);
+  assert.equal(result.annualTaxLiability, 1128400);
+});
+
+test("uses 15 percent above Rs 1 crore and applies threshold marginal relief", () => {
+  const result = calculateSupportedUatPayroll({ ...base, basicSalary: 1430000, hra: 0, specialAllowance: 0, taxableSalaryYtd: 0 });
+  assert.equal(result.status, "CALCULATED");
+  assert.equal(result.taxableIncome, 9935000);
+  assert.equal(result.surchargeRatePercent, 10);
+
+  const above = calculateSupportedUatPayroll({ ...base, basicSalary: 1440000, hra: 0, specialAllowance: 0, taxableSalaryYtd: 0 });
+  assert.equal(above.taxableIncome, 10005000);
+  assert.equal(above.surchargeRatePercent, 15);
+  assert.ok(above.surchargeMarginalRelief > 0);
+});
+
+test("caps new-regime salary surcharge at 25 percent above Rs 2 crore and Rs 5 crore", () => {
+  const aboveTwoCrore = calculateSupportedUatPayroll({ ...base, basicSalary: 2870000, hra: 0, specialAllowance: 0, taxableSalaryYtd: 0 });
+  assert.equal(aboveTwoCrore.taxableIncome, 20015000);
+  assert.equal(aboveTwoCrore.surchargeRatePercent, 25);
+  assert.ok(aboveTwoCrore.surchargeMarginalRelief > 0);
+
+  const aboveFiveCrore = calculateSupportedUatPayroll({ ...base, basicSalary: 7165000, hra: 0, specialAllowance: 0, taxableSalaryYtd: 0 });
+  assert.equal(aboveFiveCrore.surchargeRatePercent, 25);
+  assert.equal(aboveFiveCrore.surchargeMarginalRelief, 0);
 });
